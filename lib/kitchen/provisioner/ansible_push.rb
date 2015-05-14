@@ -13,6 +13,8 @@ module Kitchen
       default_config :extra_vars, nil
       default_config :sudo, nil
       default_config :sudo_user, nil
+      default_config :remote_user, nil
+      default_config :private_key, nil
       default_config :ask_vault_pass, nil
       default_config :vault_password_file, nil
       default_config :limit, nil
@@ -20,7 +22,9 @@ module Kitchen
       default_config :skip_tags, nil
       default_config :start_at_task, nil
       default_config :host_key_checking, false
+      default_config :mygroup, nil
       default_config :playbook, nil
+      default_config :generate_inv, true
       def prepare_command
         validate_config
         complie_config
@@ -28,7 +32,7 @@ module Kitchen
 
       def run_command
         info("*************** AnsiblePush run ***************")
-        info(" Running %s" % @command  ) 
+        info(" Running %s" % @command  )
         exec_command(@command_env, @command, "ansible-playbook")
         info("*************** AnsiblePush end run *******************")
         debug("[#{name}] Converge completed (#{config[:sleep]}s).")
@@ -40,34 +44,40 @@ module Kitchen
         debug("env=%s running=%s" % [env, command] )
         system(env, command)
         exit_code = `echo $?`
-        if exit_code != 0
-          raise '%s returned a non zeroo. Please see the output above.' % desc
+        if exit_code.to_i != 0
+          raise "%s returned a non zeroo '%s'. Please see the output above." % [ desc, exit_code.to_s ]
         end
       end
 
       def complie_config()
         debug("compile_config")
-        options = %W[--private-key=PRVI_VAR --user=USER_VAR]
+        machine_options = @instance.transport.instance_variable_get(:@connection_options)
+        machine_name = instance.to_str.gsub(/[<>]/, '').split("-").drop(1).join("-")
+        @instance_connection_option = instance.transport.instance_variable_get(:@connection_options)
+        ssh_inv= @instance_connection_option[:hostname]
+        write_instance_inventory(machine_name, ssh_inv, config[:mygroup])
+        #options = %W[--private-key=PRVI_VAR --user=USER_VAR]
+        options = []
         options << "--extra-vars=#{self.get_extra_vars_argument}" if config[:extra_vars]
         options << "--sudo" if config[:sudo]
         options << "--sudo-user=#{config[:sudo_user]}" if config[:sudo_user]
+        options << "--user=#{config[:remote_user]}" if self.get_remote_user
+        options << "--private-key=#{config[:private_key]}" if config[:private_key]
         options << "#{self.get_verbosity_argument}" if config[:verbose]
-        options << "--diff" if config[:diff] 
+        options << "--diff" if config[:diff]
         options << "--ask-sudo-pass" if config[:ask_sudo_pass]
         options << "--ask-vault-pass" if config[:ask_vault_pass]
         options << "--vault-password-file=#{config[:vault_password_file]}" if config[:vault_password_file]
         options << "--tags=%s" % self.as_list_argument(config[:tags]) if config[:tags]
         options << "--skip-tags=%s" % self.as_list_argument(config[:skip_tags]) if config[:skip_tags]
         options << "--start-at-task=#{config[:start_at_task]}" if config[:start_at_task]
-        machine_options = @instance.transport.instance_variable_get(:@connection_options)
-        ssh_inv= machine_options[:hostname]
         options << "--inventory-file=#{ssh_inv}," if ssh_inv
         # TODO: inventory
         debug("#{options}")
         @command = (%w(ansible-playbook) << options << config[:playbook]).flatten.join(" ")
         debug("Ansible push command= %s" % @command)
         @command_env = {
-          "PYTHONUNBUFFERED" => "1", # Ensure Ansible output isn't buffered 
+          "PYTHONUNBUFFERED" => "1", # Ensure Ansible output isn't buffered
           "ANSIBLE_FORCE_COLOR" => "true",
           "ANSIBLE_HOST_KEY_CHECKING" => "#{config[:host_key_checking]}",
         }
@@ -91,8 +101,7 @@ module Kitchen
         if config[:extra_vars]
           extra_vars_is_valid = config[:extra_vars].kind_of?(Hash) || config[:extra_vars].kind_of?(String)
           if config[:extra_vars].kind_of?(String)
-            # Accept the usage of '@' prefix in Vagrantfile (e.g. '@vars.yml'
-            # and 'vars.yml' are both supported)
+            # Accept the usage of '@' prefix in Vagrantfile (e.g. '@vars.yml' and 'vars.yml' are both supported)
             match_data = /^@?(.+)$/.match(config[:extra_vars])
             extra_vars_path = match_data[1].to_s
             expanded_path = Pathname.new(extra_vars_path).expand_path(Dir.pwd)
@@ -119,8 +128,32 @@ module Kitchen
         end
       end
 
+      def get_remote_user
+        if config[:remote_user]
+          return config[:remote_user]
+        elsif @instance_connection_option[:username]
+          config[:remote_user] = @instance_connection_option[:username]
+          return @instance_connection_option[:username]
+        else
+          return nil
+        end
+      end
+
       def as_list_argument(v)
         v.kind_of?(Array) ? v.join(',') : v
+      end
+
+      def write_instance_inventory(name, host, mygroup)
+        Dir.mkdir '.kitchen/ansiblepush' if !File.exist?(".kitchen/ansiblepush")
+        if mygroup
+          host = { name => { 'ansible_ssh_host' => host, 'mygroup' => mygroup } }
+        else
+          host = { name => { 'ansible_ssh_host' => host } }
+        end
+        
+        File.open(".kitchen/ansiblepush/ansiblepush_host_%s.yml" % name, "w") do |file|
+          file.write host.to_yaml
+        end
       end
 
       def get_verbosity_argument
