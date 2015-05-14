@@ -6,7 +6,6 @@ module Kitchen
     #default_config :ansible_version, nil
     class AnsiblePush < Base
       kitchen_provisioner_api_version 2
-
       default_config :ansible_config, nil
       default_config :verbose, nil
       default_config :diff, nil
@@ -29,22 +28,25 @@ module Kitchen
 
       def run_command
         info("*************** AnsiblePush run ***************")
-        exec_command(@command_env, @command)
-        puts "*************** AnsiblePush end run *******************"
+        info(" Running %s" % @command  ) 
+        exec_command(@command_env, @command, "ansible-playbook")
+        info("*************** AnsiblePush end run *******************")
         debug("[#{name}] Converge completed (#{config[:sleep]}s).")
       end
 
       protected
 
-      def exec_command(env, command)
+      def exec_command(env, command, desc)
+        debug("env=%s running=%s" % [env, command] )
         system(env, command)
-        # check return
+        exit_code = `echo $?`
+        if exit_code != 0
+          raise '%s returned a non zeroo. Please see the output above.' % desc
+        end
       end
 
       def complie_config()
         debug("compile_config")
-        puts config[:tags]
-        puts as_list_argument(config[:tags])
         options = %W[--private-key=PRVI_VAR --user=USER_VAR]
         options << "--extra-vars=#{self.get_extra_vars_argument}" if config[:extra_vars]
         options << "--sudo" if config[:sudo]
@@ -55,27 +57,24 @@ module Kitchen
         options << "--ask-vault-pass" if config[:ask_vault_pass]
         options << "--vault-password-file=#{config[:vault_password_file]}" if config[:vault_password_file]
         options << "--tags=%s" % self.as_list_argument(config[:tags]) if config[:tags]
-        options << "--skip-tags=%s" % self.as_list_argument(config[:tags]) if config[:skip_tags]
+        options << "--skip-tags=%s" % self.as_list_argument(config[:skip_tags]) if config[:skip_tags]
         options << "--start-at-task=#{config[:start_at_task]}" if config[:start_at_task]
         machine_options = @instance.transport.instance_variable_get(:@connection_options)
         ssh_inv= machine_options[:hostname]
         options << "--inventory-file=#{ssh_inv}," if ssh_inv
-         # TODO: inventory
-        
+        # TODO: inventory
         debug("#{options}")
         @command = (%w(ansible-playbook) << options << config[:playbook]).flatten.join(" ")
         debug("Ansible push command= %s" % @command)
         @command_env = {
-          "PYTHONUNBUFFERED" => 1, # Ensure Ansible output isn't buffered 
+          "PYTHONUNBUFFERED" => "1", # Ensure Ansible output isn't buffered 
           "ANSIBLE_FORCE_COLOR" => "true",
           "ANSIBLE_HOST_KEY_CHECKING" => "#{config[:host_key_checking]}",
         }
-
         info("Ansible push compile conig done")
       end
 
       def validate_config()
-        # Check if playbook options
         if !config[:playbook]
           raise 'No playbook defined. Please specify one in .kitchen.yml'
         end
@@ -84,7 +83,6 @@ module Kitchen
           raise "playbook '%s' could not be found. Please check path" % config[:playbook]
         end
 
-        # Check valut password path
         if config[:vault_password_file] and !File.exist?(config[:vault_password_file])
           raise "Vault password '%s' could not be found. Please check path" % config[:vault_password_file]
         end
