@@ -3,6 +3,13 @@ require 'kitchen/provisioner/base'
 require 'kitchen-ansible/util-inventory.rb'
 
 module Kitchen
+
+  class Busser
+    def non_suite_dirs
+      %w{data}
+    end
+  end
+
   module Provisioner
     class AnsiblePush < Base
       kitchen_provisioner_api_version 2
@@ -25,11 +32,42 @@ module Kitchen
       default_config :mygroup, nil
       default_config :playbook, nil
       default_config :generate_inv, true
+      default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
 
       def prepare_command
         validate_config
         prepare_inventory
         complie_config
+      end
+
+      def install_command
+        # Must install chef for busser and serverspec to work :(
+        info("*************** AnsiblePush install_command ***************")
+        omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
+        chef_url = config[:chef_bootstrap_url]
+        <<-INSTALL
+          sh -c '
+          #{Util.shell_helpers}
+          if [ ! -d "/opt/chef" ]
+          then
+            echo "-----> Installing Chef Omnibus"
+            mkdir -p #{omnibus_download_dir}
+            if [ ! -x #{omnibus_download_dir}/install.sh ]
+            then
+              do_download #{chef_url} #{omnibus_download_dir}/install.sh
+            fi
+            #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
+          fi
+
+          # Fix for https://github.com/test-kitchen/busser/issues/12
+          if [ -h /usr/bin/ruby ]; then
+              L=$(readlink -f /usr/bin/ruby)
+              #{sudo('rm')} /usr/bin/ruby
+              #{sudo('ln')} -s $L /usr/bin/ruby
+          fi
+          '
+        INSTALL
+
       end
 
       def run_command
