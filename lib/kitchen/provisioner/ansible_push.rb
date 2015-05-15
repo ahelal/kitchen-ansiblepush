@@ -28,12 +28,12 @@ module Kitchen
 
       def prepare_command
         validate_config
+        prepare_inventory
         complie_config
       end
 
       def run_command
         info("*************** AnsiblePush run ***************")
-        info(" Running %s" % @command  )
         exec_command(@command_env, @command, "ansible-playbook")
         info("*************** AnsiblePush end run *******************")
         debug("[#{name}] Converge completed (#{config[:sleep]}s).")
@@ -42,22 +42,24 @@ module Kitchen
       protected
 
       def exec_command(env, command, desc)
-        debug("env=%s running=%s" % [env, command] )
-        system(env, command)
-        exit_code = `echo $?`
+        debug("env=%s command=%s" % [env, command] )
+        system(env, "#{command}")
+        exit_code = $?.exitstatus
+        debug("ansible-playbook exit code = #{exit_code}")
         if exit_code.to_i != 0
           raise "%s returned a non zeroo '%s'. Please see the output above." % [ desc, exit_code.to_s ]
         end
       end
 
+      def prepare_inventory
+        @machine_name = instance.to_str.gsub(/[<>]/, '').split("-").drop(1).join("-")
+        @instance_connection_option = instance.transport.instance_variable_get(:@connection_options)
+        @hostname = @instance_connection_option[:hostname]
+        write_instance_inventory(@machine_name , @hostname, config[:mygroup])
+      end
+
       def complie_config()
         debug("compile_config")
-        machine_options = @instance.transport.instance_variable_get(:@connection_options)
-        machine_name = instance.to_str.gsub(/[<>]/, '').split("-").drop(1).join("-")
-        @instance_connection_option = instance.transport.instance_variable_get(:@connection_options)
-        ssh_inv= @instance_connection_option[:hostname]
-        write_instance_inventory(machine_name, ssh_inv, config[:mygroup])
-        #options = %W[--private-key=PRVI_VAR --user=USER_VAR]
         options = []
         options << "--extra-vars=#{self.get_extra_vars_argument}" if config[:extra_vars]
         options << "--sudo" if config[:sudo]
@@ -72,9 +74,18 @@ module Kitchen
         options << "--tags=%s" % self.as_list_argument(config[:tags]) if config[:tags]
         options << "--skip-tags=%s" % self.as_list_argument(config[:skip_tags]) if config[:skip_tags]
         options << "--start-at-task=#{config[:start_at_task]}" if config[:start_at_task]
-        options << "--inventory-file=#{ssh_inv}," if ssh_inv
-        # TODO: inventory
-        debug("Ansiblepush a#{options}")
+        if config[:generate_inv]
+          dynamic_inventory_path = Shellwords.escape(File.expand_path("#{File.dirname(__FILE__)}/../../kitchen-ansible/kitchen-ansiblepush-dinv.rb"))
+          options << "--inventory-file=#{dynamic_inventory_path}" 
+        end
+        ##options << "--inventory-file=#{ssh_inv}," if ssh_inv
+        # By default we limit by the current machine,
+        if config[:limit]
+          options << "--limit=#{as_list_argument(config[:limit])}"
+        else
+          options << "--limit=#{@machine_name}"
+        end
+
         @command = (%w(ansible-playbook) << options << config[:playbook]).flatten.join(" ")
         debug("Ansible push command= %s" % @command)
         @command_env = {
