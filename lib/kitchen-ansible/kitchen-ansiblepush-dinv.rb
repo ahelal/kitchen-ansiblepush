@@ -1,15 +1,16 @@
 #!/usr/bin/env ruby
 require 'yaml'
 require 'json'
+require 'kitchen-ansible/util-inventory.rb'
 
 all =  []
 groups =  Hash.new
 hosts =  Hash.new
-if File.exist?("ansiblepush_groups_inventory.yml")
-  groups = YAML::load_file "ansiblepush_groups_inventory.yml"
+if File.exist?(TEMP_GROUP_FILE)
+  groups = YAML::load_file TEMP_GROUP_FILE
 end
 
-Dir.glob('.kitchen/ansiblepush/ansiblepush_host_*.yml') do |inv_yml|
+Dir.glob(TEMP_INV_DIR + '/ansiblepush_host_*.yml') do |inv_yml|
   vm = YAML::load_file inv_yml
   vm.each do |host, host_attr|
     if host_attr["group"]

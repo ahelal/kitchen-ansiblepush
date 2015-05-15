@@ -1,9 +1,9 @@
 require 'kitchen'
 require 'kitchen/provisioner/base'
+require 'kitchen-ansible/util-inventory.rb'
 
 module Kitchen
   module Provisioner
-    #default_config :ansible_version, nil
     class AnsiblePush < Base
       kitchen_provisioner_api_version 2
       default_config :ansible_config, nil
@@ -25,6 +25,7 @@ module Kitchen
       default_config :mygroup, nil
       default_config :playbook, nil
       default_config :generate_inv, true
+
       def prepare_command
         validate_config
         complie_config
@@ -73,7 +74,7 @@ module Kitchen
         options << "--start-at-task=#{config[:start_at_task]}" if config[:start_at_task]
         options << "--inventory-file=#{ssh_inv}," if ssh_inv
         # TODO: inventory
-        debug("#{options}")
+        debug("Ansiblepush a#{options}")
         @command = (%w(ansible-playbook) << options << config[:playbook]).flatten.join(" ")
         debug("Ansible push command= %s" % @command)
         @command_env = {
@@ -141,19 +142,6 @@ module Kitchen
 
       def as_list_argument(v)
         v.kind_of?(Array) ? v.join(',') : v
-      end
-
-      def write_instance_inventory(name, host, mygroup)
-        Dir.mkdir '.kitchen/ansiblepush' if !File.exist?(".kitchen/ansiblepush")
-        if mygroup
-          host = { name => { 'ansible_ssh_host' => host, 'mygroup' => mygroup } }
-        else
-          host = { name => { 'ansible_ssh_host' => host } }
-        end
-        
-        File.open(".kitchen/ansiblepush/ansiblepush_host_%s.yml" % name, "w") do |file|
-          file.write host.to_yaml
-        end
       end
 
       def get_verbosity_argument
