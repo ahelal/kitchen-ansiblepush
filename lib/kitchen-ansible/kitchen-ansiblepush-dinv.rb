@@ -24,7 +24,12 @@ Dir.glob(TEMP_INV_DIR + '/ansiblepush_host_*.yml') do |inv_yml|
     all << host
   end
 end
-inventory = {'all' => all, "hosts" => hosts}
+inventory = {'all' => all, 
+             "hosts" => hosts,
+             "_meta" => {
+                "hostvars" => hosts
+             }
+            }
 inventory = groups.merge(inventory)
 
 # Print our inventory
