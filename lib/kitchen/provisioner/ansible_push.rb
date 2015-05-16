@@ -32,6 +32,8 @@ module Kitchen
       default_config :mygroup, nil
       default_config :playbook, nil
       default_config :generate_inv, true
+      default_config :raw_arguments, nil
+
       # For tests disable if not needed
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
 
@@ -122,6 +124,9 @@ module Kitchen
         else
           options << "--limit=#{@machine_name}"
         end
+      
+        #Add raw argument as final thing
+        options << config[:raw_arguments] if config[:raw_arguments]
 
         @command = (%w(ansible-playbook) << options << config[:playbook]).flatten.join(" ")
         debug("Ansible push command= %s" % @command)
@@ -130,6 +135,8 @@ module Kitchen
           "ANSIBLE_FORCE_COLOR" => "true",
           "ANSIBLE_HOST_KEY_CHECKING" => "#{config[:host_key_checking]}",
         }
+        @command_env["ANSIBLE_CONFIG"]=config[:ansible_config] if config[:ansible_config]
+
         info("Ansible push compile conig done")
       end
 
