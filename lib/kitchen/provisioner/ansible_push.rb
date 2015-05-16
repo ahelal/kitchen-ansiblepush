@@ -59,14 +59,16 @@ module Kitchen
             then
               do_download #{chef_url} #{omnibus_download_dir}/install.sh
             fi
-            #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
+
+            sudo sh #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
+            echo "-----> End Installing Chef Omnibus"
           fi
 
           # Fix for https://github.com/test-kitchen/busser/issues/12
           if [ -h /usr/bin/ruby ]; then
               L=$(readlink -f /usr/bin/ruby)
-              #{sudo('rm')} /usr/bin/ruby
-              #{sudo('ln')} -s $L /usr/bin/ruby
+              sudo rm /usr/bin/ruby
+              sudo ln  -s $L /usr/bin/ruby
           fi
           '
         INSTALL
