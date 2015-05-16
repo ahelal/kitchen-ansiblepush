@@ -32,6 +32,7 @@ module Kitchen
       default_config :mygroup, nil
       default_config :playbook, nil
       default_config :generate_inv, true
+      # For tests disable if not needed
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
 
       def prepare_command
@@ -112,11 +113,9 @@ module Kitchen
         options << "--tags=%s" % self.as_list_argument(config[:tags]) if config[:tags]
         options << "--skip-tags=%s" % self.as_list_argument(config[:skip_tags]) if config[:skip_tags]
         options << "--start-at-task=#{config[:start_at_task]}" if config[:start_at_task]
-        if config[:generate_inv]
-          dynamic_inventory_path = Shellwords.escape(File.expand_path("#{File.dirname(__FILE__)}/../../kitchen-ansible/kitchen-ansiblepush-dinv.rb"))
-          options << "--inventory-file=#{dynamic_inventory_path}" 
-        end
+        options << "--inventory-file=`which kitchen-ansible-inventory`" if config[:generate_inv]
         ##options << "--inventory-file=#{ssh_inv}," if ssh_inv
+        
         # By default we limit by the current machine,
         if config[:limit]
           options << "--limit=#{as_list_argument(config[:limit])}"

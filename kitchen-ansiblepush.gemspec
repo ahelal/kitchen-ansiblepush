@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.files             = candidates.sort
   s.platform          = Gem::Platform::RUBY
   s.require_paths     = ['lib']
+  s.executables       = ['kitchen-ansible-inventory']
   s.rubyforge_project = '[none]'
   s.description       = <<-EOF
 == DESCRIPTION:
@@ -25,6 +26,6 @@ Ansible push Provisioner for Test Kitchen
 Supports running ansible in push mode
 
 EOF
-  s.add_runtime_dependency 'test-kitchen'
 
+  s.add_runtime_dependency 'test-kitchen'
 end
