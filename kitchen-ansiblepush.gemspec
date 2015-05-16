@@ -3,20 +3,20 @@
 $:.unshift File.expand_path('../lib', __FILE__)
 require 'kitchen-ansible/version'
 
-Gem::Specification.new do |s|
-  s.name              = "kitchen-ansiblepush"
-  s.version           = Kitchen::AnsiblePush::VERSION
-  s.authors           = ["Adham Helal"]
-  s.email             = ["adham.helal@gmail.com"]
-  s.homepage          = "https://github.com/ahelal/kitchen-ansiblepush"
-  s.summary           = "ansible provisioner for test-kitchen"
-  candidates          = Dir.glob("{lib}/**/*") +  ['README.md', 'kitchen-ansiblepush.gemspec']
-  s.files             = candidates.sort
-  s.platform          = Gem::Platform::RUBY
-  s.require_paths     = ['lib']
-  s.executables       = ['kitchen-ansible-inventory']
-  s.rubyforge_project = '[none]'
-  s.description       = <<-EOF
+Gem::Specification.new do |gem|
+  gem.name              = "kitchen-ansiblepush"
+  gem.version           = Kitchen::AnsiblePush::VERSION
+  gem.authors           = ["Adham Helal"]
+  gem.email             = ["adham.helal@gmail.com"]
+  gem.homepage          = "https://github.com/ahelal/kitchen-ansiblepush"
+  gem.summary           = "ansible provisioner for test-kitchen"
+  candidates            = Dir.glob("{lib}/**/*") +  ['README.md', 'kitchen-ansiblepush.gemspec']
+  gem.files             = candidates.sort
+  gem.platform          = Gem::Platform::RUBY
+  gem.require_paths     = ['lib']
+  gem.executables       = ['kitchen-ansible-inventory']
+  gem.rubyforge_project = '[none]'
+  gem.description       = <<-EOF
 == DESCRIPTION:
 
 Ansible push Provisioner for Test Kitchen
@@ -27,5 +27,9 @@ Supports running ansible in push mode
 
 EOF
 
-  s.add_runtime_dependency 'test-kitchen'
+  gem.add_runtime_dependency 'test-kitchen'
+    gem.add_development_dependency 'kitchen-joyent'
+  gem.add_development_dependency 'rspec'
+  gem.add_development_dependency 'pry'
+
 end
