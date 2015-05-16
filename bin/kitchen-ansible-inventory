@@ -13,23 +13,27 @@ end
 Dir.glob(TEMP_INV_DIR + '/ansiblepush_host_*.yml') do |inv_yml|
   vm = YAML::load_file inv_yml
   vm.each do |host, host_attr|
-    if host_attr["group"]
-      host_attr["group"].each do | group |
-      groups[group] ||= []
-        groups[group] << host
+    if host_attr["mygroup"]
+      if host_attr["mygroup"].is_a?(Hash)
+        host_attr["mygroup"].each do | group |
+          groups[group] ||= []
+          groups[group] << host
+        end
+      elsif host_attr["mygroup"].kind_of?(String)
+        groups[host_attr["mygroup"]] ||= []
+        groups[host_attr["mygroup"]] << host
       end
-      host_attr.delete("group")
     end
+    host_attr.delete("mygroup")
     hosts[host] = host_attr
     all << host
   end
 end
-inventory = {'all' => all, 
-             "hosts" => hosts,
-             "_meta" => {
-                "hostvars" => hosts
-             }
-            }
+
+inventory = { "all" => all, "_meta" => { "hostvars" => hosts }}
+
+
+
 inventory = groups.merge(inventory)
 
 # Print our inventory
