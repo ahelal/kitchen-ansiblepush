@@ -28,7 +28,6 @@ Supports running ansible in push mode
 EOF
 
   gem.add_runtime_dependency 'test-kitchen'
-    gem.add_development_dependency 'kitchen-joyent'
   gem.add_development_dependency 'rspec'
   gem.add_development_dependency 'pry'
 
