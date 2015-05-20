@@ -72,15 +72,16 @@ module Kitchen
           fi
           '
         INSTALL
-
+        info("*************** End AnsiblePush install_command ***************")
       end
 
       def run_command
         info("*************** AnsiblePush run ***************")
         exec_command(@command_env, @command, "ansible-playbook")
+
         info("*************** AnsiblePush end run *******************")
         debug("[#{name}] Converge completed (#{config[:sleep]}s).")
-        return true
+        return nil        
       end
 
       protected
