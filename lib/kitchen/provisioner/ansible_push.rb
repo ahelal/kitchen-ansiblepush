@@ -80,6 +80,7 @@ module Kitchen
         exec_command(@command_env, @command, "ansible-playbook")
         info("*************** AnsiblePush end run *******************")
         debug("[#{name}] Converge completed (#{config[:sleep]}s).")
+        return true
       end
 
       protected
@@ -97,8 +98,9 @@ module Kitchen
       def prepare_inventory
         @machine_name = instance.to_str.gsub(/[<>]/, '').split("-").drop(1).join("-")
         @instance_connection_option = instance.transport.instance_variable_get(:@connection_options)
-        @hostname = @instance_connection_option[:hostname]
-        write_instance_inventory(@machine_name , @hostname, config[:mygroup])
+        hostname = @instance_connection_option[:hostname]
+       debug("instance_connection_option=" + @instance_connection_option.to_s)
+        write_instance_inventory(@machine_name, hostname, config[:mygroup], @instance_connection_option)
       end
 
       def complie_config()
