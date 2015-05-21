@@ -2,6 +2,9 @@
 
 A test-kitchen plugin that adds the support for ansible in push mode
 
+## TODO
+* Tests
+
 ## Intro
 This kitchen plugin adds ansible as a provisioner in push mode. Ansible will run from your host rather than run from guest machines.  
 
