@@ -72,7 +72,7 @@ module Kitchen
           fi
           '
         INSTALL
-        info("*************** End AnsiblePush install_command ***************")
+
       end
 
       def run_command
