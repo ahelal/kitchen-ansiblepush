@@ -15,6 +15,7 @@ for now you can clone the repo then run
 
 ``` 
 git clone git@github.com:ahelal/kitchen-ansiblepush.git
+cd kitchen-ansiblepush
 gem build kitchen-ansiblepush.gemspec
 sudo gem install kitchen-ansiblepush-<version>.gem
 ```
