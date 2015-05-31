@@ -1,6 +1,7 @@
 require 'kitchen'
 require 'kitchen/provisioner/base'
 require 'kitchen-ansible/util-inventory.rb'
+require 'json'
 
 module Kitchen
 
@@ -33,6 +34,7 @@ module Kitchen
       default_config :playbook, nil
       default_config :generate_inv, true
       default_config :raw_arguments, nil
+      default_config :idempotency_test, false
 
       # For tests disable if not needed
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
@@ -78,7 +80,28 @@ module Kitchen
       def run_command
         info("*************** AnsiblePush run ***************")
         exec_command(@command_env, @command, "ansible-playbook")
+        # idempotency test
+        if config[:idempotency_test]
+          info("*************** idempotency test ***************")
+          @command_env["ANSIBLE_CALLBACK_PLUGINS"] = "#{File.dirname(__FILE__)}/../../callback/"
+          exec_command(@command_env, @command, "ansible-playbook")
+          # Check ansible callback if changes has occured in the second run
+          file_path = "/tmp/kitchen_ansible_callback/changes"
+          if File.file?(file_path)
+            task = 0
+            info("idempotency test [Failed]")
+            File.open(file_path, "r") do |f| 
+              f.each_line do |line|
+                task += 1
+                info(" #{task}> #{line.strip}")
+              end
+            end
+            raise "idempotency test Failed. Number of non idemptent tasks: #{task}"
 
+          else
+            info("idempotency test [passed]")
+          end
+        end
         info("*************** AnsiblePush end run *******************")
         debug("[#{name}] Converge completed (#{config[:sleep]}s).")
         return nil        
@@ -100,7 +123,7 @@ module Kitchen
         @machine_name = instance.to_str.gsub(/[<>]/, '').split("-").drop(1).join("-")
         @instance_connection_option = instance.transport.instance_variable_get(:@connection_options)
         hostname = @instance_connection_option[:hostname]
-       debug("instance_connection_option=" + @instance_connection_option.to_s)
+        debug("instance_connection_option=" + @instance_connection_option.to_s)
         write_instance_inventory(@machine_name, hostname, config[:mygroup], @instance_connection_option)
       end
 
@@ -162,7 +185,7 @@ module Kitchen
         if config[:extra_vars]
           extra_vars_is_valid = config[:extra_vars].kind_of?(Hash) || config[:extra_vars].kind_of?(String)
           if config[:extra_vars].kind_of?(String)
-            # Accept the usage of '@' prefix in Vagrantfile (e.g. '@vars.yml' and 'vars.yml' are both supported)
+            # Accept the usage of '@' (e.g. '@vars.yml' and 'vars.yml' are both supported)
             match_data = /^@?(.+)$/.match(config[:extra_vars])
             extra_vars_path = match_data[1].to_s
             expanded_path = Pathname.new(extra_vars_path).expand_path(Dir.pwd)

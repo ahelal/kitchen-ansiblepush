@@ -1,0 +1,97 @@
+import json
+import os
+import errno
+
+change_dir = "/tmp/kitchen_ansible_callback"
+change_file = change_dir + "/changes"
+
+class CallbackModule(object):
+    def __init__(self):
+        if not os.path.exists(change_dir):
+            os.makedirs(change_dir)
+        
+        try:
+            os.remove(change_file)
+        except OSError as e: # this would be "except OSError, e:" before Python 2.6
+            if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
+                raise # re-raise exception if a different error occured
+
+        
+
+    def write_changed_to_file(self, host, res, name=None):
+        changed_data = dict()
+        invocation = res.get("invocation", {})
+        changed_data["changed_module_args"] = invocation.get("module_args", "")
+        changed_data["changed_module_name"] = invocation.get("module_name", "")
+        changed_data["host"] = host
+        if name:
+            changed_data["task_name"] = name
+        changed_data["changed_msg"] = res.get("msg", "")
+
+        try:
+            with open(change_file, 'at') as the_file:
+                the_file.write(json.dumps(changed_data) + "\n")
+        except Exception, e:
+            print "Ansible callback idempotency: Write to file failed '%s' error:'%s'" % (change_file, e)
+            exit(1)
+
+    def on_any(self, *args, **kwargs):
+        pass
+
+    def runner_on_failed(self, host, res, ignore_errors=False):
+        pass
+
+    def runner_on_ok(self, host, res):
+        if res.get("changed"):
+            self.write_changed_to_file(host, res, self.current_task)
+
+    def runner_on_skipped(self, host, item=None):
+        pass
+
+    def runner_on_unreachable(self, host, res):
+        pass
+
+    def runner_on_no_hosts(self):
+        pass
+
+    def runner_on_async_poll(self, host, res, jid, clock):
+        pass
+
+    def runner_on_async_ok(self, host, res, jid):
+        pass
+
+    def runner_on_async_failed(self, host, res, jid):
+        pass
+
+    def playbook_on_start(self):
+        pass
+
+    def playbook_on_notify(self, host, handler):
+        pass
+
+    def playbook_on_no_hosts_matched(self):
+        pass
+
+    def playbook_on_no_hosts_remaining(self):
+        pass
+
+    def playbook_on_task_start(self, name, is_conditional):
+        self.current_task = name
+
+    def playbook_on_vars_prompt(self, varname, private=True, prompt=None, encrypt=None, confirm=False, salt_size=None, salt=None, default=None):
+        pass
+
+    def playbook_on_setup(self):
+        pass
+
+    def playbook_on_import_for_host(self, host, imported_file):
+        pass
+
+    def playbook_on_not_import_for_host(self, host, missing_file):
+        pass
+
+    def playbook_on_play_start(self, name):
+        pass
+
+    def playbook_on_stats(self, stats):
+        pass
