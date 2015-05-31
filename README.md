@@ -1,4 +1,4 @@
-# kitchen-ansible
+# kitchen-ansiblepush
 
 A test-kitchen plugin that adds the support for ansible in push mode
 
@@ -10,9 +10,12 @@ This kitchen plugin adds ansible as a provisioner in push mode. Ansible will run
 
 ## How to install 
 
-This gem is still not published 
-for now you can clone the repo then run 
+### Ruby gem
+```
+gem install kitchen-ansiblepush
+```
 
+### To install from code 
 ``` 
 git clone git@github.com:ahelal/kitchen-ansiblepush.git
 cd kitchen-ansiblepush

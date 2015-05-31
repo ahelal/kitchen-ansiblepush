@@ -83,7 +83,7 @@ module Kitchen
         # idempotency test
         if config[:idempotency_test]
           info("*************** idempotency test ***************")
-          @command_env["ANSIBLE_CALLBACK_PLUGINS"] = "#{File.dirname(__FILE__)}/../../callback/"
+          @command_env["ANSIBLE_CALLBACK_PLUGINS"] = "#{File.dirname(__FILE__)}/../../../callback/"
           exec_command(@command_env, @command, "ansible-playbook")
           # Check ansible callback if changes has occured in the second run
           file_path = "/tmp/kitchen_ansible_callback/changes"
