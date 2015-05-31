@@ -51,3 +51,8 @@ provisioner         :
     generate_inv        : true
     
 ```
+## idempotency test
+If you want to check your code is idempotent you can use the idempotency_test. Essentially, this will run Ansible twice and check nothing changed in the next run. If something changed it will list the tasks. Note: If your using Ansible callback in your config this might conflict.
+```yaml
+    idempotency_test: True
+```
