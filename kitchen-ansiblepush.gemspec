@@ -8,6 +8,7 @@ Gem::Specification.new do |gem|
   gem.version           = Kitchen::AnsiblePush::VERSION
   gem.authors           = ["Adham Helal"]
   gem.email             = ["adham.helal@gmail.com"]
+  gem.licenses          = ['MIT']
   gem.homepage          = "https://github.com/ahelal/kitchen-ansiblepush"
   gem.summary           = "ansible provisioner for test-kitchen"
   candidates            = Dir.glob("{lib}/**/*") +  ['README.md', 'kitchen-ansiblepush.gemspec']
