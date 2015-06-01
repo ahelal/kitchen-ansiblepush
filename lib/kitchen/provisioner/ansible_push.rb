@@ -41,7 +41,7 @@ module Kitchen
 
       def prepare_command
         validate_config
-        prepare_inventory
+        prepare_inventory if config[:generate_inv]
         complie_config
       end
 
@@ -120,7 +120,7 @@ module Kitchen
       end
 
       def prepare_inventory
-        @machine_name = instance.to_str.gsub(/[<>]/, '').split("-").drop(1).join("-")
+        @machine_name = instance.name.gsub(/[<>]/, '').split("-").drop(1).join("-")
         @instance_connection_option = instance.transport.instance_variable_get(:@connection_options)
         hostname = @instance_connection_option[:hostname]
         debug("instance_connection_option=" + @instance_connection_option.to_s)
@@ -164,7 +164,7 @@ module Kitchen
           "ANSIBLE_HOST_KEY_CHECKING" => "#{config[:host_key_checking]}",
         }
         @command_env["ANSIBLE_CONFIG"]=config[:ansible_config] if config[:ansible_config]
-
+        puts @command
         info("Ansible push compile conig done")
       end
 

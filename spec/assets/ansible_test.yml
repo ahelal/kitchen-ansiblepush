@@ -1,0 +1,32 @@
+---
+#
+# This playbook deploys ssh keys that are under user directory to the vagrant
+#
+
+- name: Provision my keys
+  hosts: all
+  sudo: True
+  vars:
+    localuser: "{{ lookup('ENV','USER') }}"
+  tasks:
+
+    - name: Create same local user
+      user:
+        name="{{localuser}}"
+        home="/home/{{localuser}}"
+        shell="/bin/bash"
+        append="true"
+        comment="{{localuser}}"
+      tags: [ "1"]
+
+    - name: Set up authorized_key
+      authorized_key:
+        key="{{lookup('file', '~/.ssh/id_rsa.pub')}}"
+        user="{{localuser}}"
+        manage_dir=yes
+      tags: [ "2" ]
+    - name: touch
+      copy:
+        content="A"
+        dest=/tmp/ansible
+      tags: [ "3" ]
