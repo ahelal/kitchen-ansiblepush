@@ -164,7 +164,6 @@ module Kitchen
           "ANSIBLE_HOST_KEY_CHECKING" => "#{config[:host_key_checking]}",
         }
         @command_env["ANSIBLE_CONFIG"]=config[:ansible_config] if config[:ansible_config]
-        puts @command
         info("Ansible push compile conig done")
       end
 
