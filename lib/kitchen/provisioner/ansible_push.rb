@@ -115,7 +115,7 @@ module Kitchen
         exit_code = $?.exitstatus
         debug("ansible-playbook exit code = #{exit_code}")
         if exit_code.to_i != 0
-          raise "%s returned a non zeroo '%s'. Please see the output above." % [ desc, exit_code.to_s ]
+          raise "%s returned a non zero '%s'. Please see the output above." % [ desc, exit_code.to_s ]
         end
       end
 
