@@ -207,6 +207,7 @@ module Kitchen
             raise "ansible extra_vars is in valid type: %s value: %s" % [config[:extra_vars].class.to_s, config[:extra_vars].to_s]
           end
         end
+        
         info("Ansible push config validated")
       end
 
