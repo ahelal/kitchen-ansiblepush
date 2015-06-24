@@ -43,6 +43,8 @@ module Kitchen
         validate_config
         prepare_inventory if config[:generate_inv]
         complie_config
+        # Place holder so a string is returned. This will execute true on remote host 
+        return "true"
       end
 
       def install_command
@@ -105,7 +107,8 @@ module Kitchen
         end
         info("*************** AnsiblePush end run *******************")
         debug("[#{name}] Converge completed (#{config[:sleep]}s).")
-        return nil        
+        # Place holder so a string is returned. This will execute true on remote host 
+        return "true"    
       end
 
       protected
