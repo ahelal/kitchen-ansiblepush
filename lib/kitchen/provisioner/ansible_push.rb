@@ -140,7 +140,7 @@ module Kitchen
       def complie_config()
         debug("compile_config")
         options = []
-        options << "--extra-vars=#{self.get_extra_vars_argument}" if config[:extra_vars]
+        options << "--extra-vars='#{self.get_extra_vars_argument}'" if config[:extra_vars]
         options << "--sudo" if config[:sudo]
         options << "--sudo-user=#{config[:sudo_user]}" if config[:sudo_user]
         options << "--user=#{config[:remote_user]}" if self.get_remote_user
