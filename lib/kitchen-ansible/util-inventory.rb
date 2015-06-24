@@ -5,9 +5,12 @@ TEMP_GROUP_FILE = "#{TEMP_INV_DIR}/ansiblepush_groups_inventory.yml"
 
 def write_instance_inventory(name, host, mygroup, instance_connection_option)
   Dir.mkdir TEMP_INV_DIR if !File.exist?(TEMP_INV_DIR)
-  port = instance_connection_option[:port]  
-  keys = instance_connection_option[:keys]  
-  user = instance_connection_option[:user]  
+  
+  unless instance_connection_option.nil?
+        port = instance_connection_option[:port]
+        keys = instance_connection_option[:keys]
+        user = instance_connection_option[:user]
+  end
 
   temp_hash = Hash.new
   temp_hash["ansible_ssh_host"] = host

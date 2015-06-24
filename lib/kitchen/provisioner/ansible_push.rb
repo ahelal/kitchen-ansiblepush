@@ -50,31 +50,32 @@ module Kitchen
         info("*************** AnsiblePush install_command ***************")
         omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
         chef_url = config[:chef_bootstrap_url]
-        <<-INSTALL
-          sh -c '
-          #{Util.shell_helpers}
-          if [ ! -d "/opt/chef" ]
-          then
-            echo "-----> Installing Chef Omnibus"
-            mkdir -p #{omnibus_download_dir}
-            if [ ! -x #{omnibus_download_dir}/install.sh ]
+        if chef_url
+          <<-INSTALL
+            sh -c '
+            #{Util.shell_helpers}
+            if [ ! -d "/opt/chef" ]
             then
-              do_download #{chef_url} #{omnibus_download_dir}/install.sh
+              echo "-----> Installing Chef Omnibus"
+              mkdir -p #{omnibus_download_dir}
+              if [ ! -x #{omnibus_download_dir}/install.sh ]
+              then
+                do_download #{chef_url} #{omnibus_download_dir}/install.sh
+              fi
+
+              sudo sh #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
+              echo "-----> End Installing Chef Omnibus"
             fi
 
-            sudo sh #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
-            echo "-----> End Installing Chef Omnibus"
-          fi
-
-          # Fix for https://github.com/test-kitchen/busser/issues/12
-          if [ -h /usr/bin/ruby ]; then
-              L=$(readlink -f /usr/bin/ruby)
-              sudo rm /usr/bin/ruby
-              sudo ln  -s $L /usr/bin/ruby
-          fi
-          '
-        INSTALL
-
+            # Fix for https://github.com/test-kitchen/busser/issues/12
+            if [ -h /usr/bin/ruby ]; then
+                L=$(readlink -f /usr/bin/ruby)
+                sudo rm /usr/bin/ruby
+                sudo ln  -s $L /usr/bin/ruby
+            fi
+            '
+          INSTALL
+        end
       end
 
       def run_command
@@ -121,9 +122,15 @@ module Kitchen
 
       def prepare_inventory
         @machine_name = instance.name.gsub(/[<>]/, '').split("-").drop(1).join("-")
+        debug("machine_name=" + @machine_name.to_s)
         @instance_connection_option = instance.transport.instance_variable_get(:@connection_options)
-        hostname = @instance_connection_option[:hostname]
         debug("instance_connection_option=" + @instance_connection_option.to_s)
+        hostname =  if @instance_connection_option.nil?
+                       @machine_name
+                    else
+                        @instance_connection_option[:hostname]
+                    end
+        debug("hostname=" + hostname)
         write_instance_inventory(@machine_name, hostname, config[:mygroup], @instance_connection_option)
       end
 
@@ -214,11 +221,11 @@ module Kitchen
       def get_remote_user
         if config[:remote_user]
           return config[:remote_user]
-        elsif @instance_connection_option[:username]
+        elsif !@instance_connection_option.nil? and @instance_connection_option[:username]
           config[:remote_user] = @instance_connection_option[:username]
           return @instance_connection_option[:username]
         else
-          return nil
+          return false
         end
       end
 
