@@ -34,7 +34,7 @@ provisioner         :
     ansible_config      : "/path/to/ansible/ansible.cfg" # path to ansible config file
     verbose             : "vvvv" #  verbose level v, vv, vvv, vvvv
     diff                : true  # print file diff
-    mygroup             : "web" # ansible group 
+    mygroup             : "web" # ansible group, or list of groups
     raw_arguments       : "--timeout=200"
     extra_vars          : "@vars.yml"
     tags                : [ "that", "this" ]
