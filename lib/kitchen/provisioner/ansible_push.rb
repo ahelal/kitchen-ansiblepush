@@ -58,7 +58,7 @@ module Kitchen
             #{Util.shell_helpers}
             if [ ! -d "/opt/chef" ]
             then
-              echo "-----> Installing Chef Omnibus"
+              echo "-----> Installing Chef Omnibus needed by busser and serverspec"
               mkdir -p #{omnibus_download_dir}
               if [ ! -x #{omnibus_download_dir}/install.sh ]
               then

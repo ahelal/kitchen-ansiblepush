@@ -22,6 +22,11 @@ Dir.glob(TEMP_INV_DIR + '/ansiblepush_host_*.yml') do |inv_yml|
       elsif host_attr["mygroup"].kind_of?(String)
         groups[host_attr["mygroup"]] ||= []
         groups[host_attr["mygroup"]] << host
+      elsif host_attr["mygroup"].kind_of?(Array)
+        host_attr["mygroup"].each do | group |
+          groups[group] ||= []
+          groups[group] << host
+        end
       end
     end
     host_attr.delete("mygroup")
