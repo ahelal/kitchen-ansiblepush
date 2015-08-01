@@ -69,6 +69,16 @@ module Kitchen
               echo "-----> End Installing Chef Omnibus"
             fi
 
+            # Older versions of ansible do not set up python-apt by
+            # default on Ubuntu
+            # https://github.com/ansible/ansible/issues/4079
+            # https://github.com/ansible/ansible/issues/6910
+            echo "-----> Installing python-apt if needed"
+            /usr/bin/python -c "import apt, apt_pkg" 2>&1 > /dev/null || \
+              [ -x /usr/bin/apt-get ] && \
+              sudo /usr/bin/apt-get install python-apt -y -q
+            echo "-----> End Installing python-apt if needed"
+
             # Fix for https://github.com/test-kitchen/busser/issues/12
             if [ -h /usr/bin/ruby ]; then
                 L=$(readlink -f /usr/bin/ruby)
