@@ -42,7 +42,7 @@ module Kitchen
       def prepare_command
         validate_config
         prepare_inventory if config[:generate_inv]
-        complie_config
+        compile_config
         # Place holder so a string is returned. This will execute true on remote host 
         return "true"
       end
@@ -137,7 +137,7 @@ module Kitchen
         write_instance_inventory(@machine_name, hostname, config[:mygroup], @instance_connection_option)
       end
 
-      def complie_config()
+      def compile_config()
         debug("compile_config")
         options = []
         options << "--extra-vars='#{self.get_extra_vars_argument}'" if config[:extra_vars]
