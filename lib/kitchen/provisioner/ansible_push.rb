@@ -1,3 +1,4 @@
+require 'open3'
 require 'kitchen'
 require 'kitchen/provisioner/base'
 require 'kitchen-ansible/util-inventory.rb'
@@ -148,12 +149,19 @@ module Kitchen
       def install_command
         # Must install chef for busser and serverspec to work :(
         info("*************** AnsiblePush install_command ***************")
+        stdin, stdout, stderr = Open3.popen3(command_env(), command() + " --version") 
+        version_output = stdout.read()
+        version_string = version_output.split()[1]
+
         omnibus_download_dir = conf[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
         chef_url = conf[:chef_bootstrap_url]
+
         if chef_url
-          <<-INSTALL
-            sh -c '
-            #{Util.shell_helpers}
+          scripts = []
+
+          scripts << Util.shell_helpers
+
+          scripts << <<-INSTALL
             if [ ! -d "/opt/chef" ]
             then
               echo "-----> Installing Chef Omnibus needed by busser and serverspec"
@@ -166,24 +174,34 @@ module Kitchen
               sudo sh #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
               echo "-----> End Installing Chef Omnibus"
             fi
+          INSTALL
 
-            # Older versions of ansible do not set up python-apt by
-            # default on Ubuntu
-            # https://github.com/ansible/ansible/issues/4079
-            # https://github.com/ansible/ansible/issues/6910
-            echo "-----> Installing python-apt if needed"
-            /usr/bin/python -c "import apt, apt_pkg" 2>&1 > /dev/null || \
-              [ -x /usr/bin/apt-get ] && \
-              sudo /usr/bin/apt-get install python-apt -y -q
-            echo "-----> End Installing python-apt if needed"
+          if (version_string.split('.').map{|s|s.to_i} <=> [1, 6, 0]) < 0
+            info("Ansible Version < 1.6.0")
+            scripts << <<-INSTALL
+              # Older versions of ansible do not set up python-apt by
+              # default on Ubuntu
+              # https://github.com/ansible/ansible/issues/4079
+              # https://github.com/ansible/ansible/issues/6910
+              echo "-----> Installing python-apt if needed"
+              /usr/bin/python -c "import apt, apt_pkg" 2>&1 > /dev/null || \
+                [ -x /usr/bin/apt-get ] && \
+                sudo /usr/bin/apt-get install python-apt -y -q
+              echo "-----> End Installing python-apt if needed"
+            INSTALL
+          end
 
+          scripts << <<-INSTALL
             # Fix for https://github.com/test-kitchen/busser/issues/12
             if [ -h /usr/bin/ruby ]; then
                 L=$(readlink -f /usr/bin/ruby)
                 sudo rm /usr/bin/ruby
                 sudo ln  -s $L /usr/bin/ruby
             fi
-            '
+          INSTALL
+
+          <<-INSTALL
+            sh -c '#{scripts.join("\n")}'
           INSTALL
         end
       end
