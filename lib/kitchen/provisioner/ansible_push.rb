@@ -121,6 +121,13 @@ module Kitchen
         @options = options
       end
 
+      def command
+        return @command if defined? @command
+        @command = (%w(ansible-playbook) << options() << conf[:playbook]).flatten.join(" ")
+        debug("Ansible push command= %s" % @command)
+        @command
+      end
+
       def command_env
         return @command_env if defined? @command_env
         @command_env = {
@@ -184,13 +191,13 @@ module Kitchen
 
       def run_command
         info("*************** AnsiblePush run ***************")
-        exec_ansible_command(command_env(), @command, "ansible-playbook")
+        exec_ansible_command(command_env(), command(), "ansible-playbook")
         # idempotency test
         if conf[:idempotency_test]
           info("*************** idempotency test ***************")
           exec_ansible_command(command_env().merge({
              "ANSIBLE_CALLBACK_PLUGINS" => "#{File.dirname(__FILE__)}/../../../callback/"
-            }), @command, "ansible-playbook")
+            }), command(), "ansible-playbook")
           # Check ansible callback if changes has occured in the second run
           file_path = "/tmp/kitchen_ansible_callback/changes"
           if File.file?(file_path)
@@ -241,8 +248,6 @@ module Kitchen
 
       def compile_config()
         debug("compile_config")
-        @command = (%w(ansible-playbook) << options() << conf[:playbook]).flatten.join(" ")
-        debug("Ansible push command= %s" % @command)
         info("Ansible push compile_config done")
       end
 
