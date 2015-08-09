@@ -90,6 +90,37 @@ module Kitchen
         @machine_name
       end
 
+      def options
+        return @options if defined? @options
+        options = []
+        options << "--extra-vars='#{self.get_extra_vars_argument}'" if conf[:extra_vars]
+        options << "--sudo" if conf[:sudo]
+        options << "--sudo-user=#{conf[:sudo_user]}" if conf[:sudo_user]
+        options << "--user=#{conf[:remote_user]}" if self.get_remote_user
+        options << "--private-key=#{conf[:private_key]}" if conf[:private_key]
+        options << "#{self.get_verbosity_argument}" if conf[:verbose]
+        options << "--diff" if conf[:diff]
+        options << "--ask-sudo-pass" if conf[:ask_sudo_pass]
+        options << "--ask-vault-pass" if conf[:ask_vault_pass]
+        options << "--vault-password-file=#{conf[:vault_password_file]}" if conf[:vault_password_file]
+        options << "--tags=%s" % self.as_list_argument(conf[:tags]) if conf[:tags]
+        options << "--skip-tags=%s" % self.as_list_argument(conf[:skip_tags]) if conf[:skip_tags]
+        options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
+        options << "--inventory-file=`which kitchen-ansible-inventory`" if conf[:generate_inv]
+        ##options << "--inventory-file=#{ssh_inv}," if ssh_inv
+
+        # By default we limit by the current machine,
+        if conf[:limit]
+          options << "--limit=#{as_list_argument(conf[:limit])}"
+        else
+          options << "--limit=#{machine_name}"
+        end
+
+        #Add raw argument as final thing
+        options << conf[:raw_arguments] if conf[:raw_arguments]
+        @options = options
+      end
+
       def command_env
         return @command_env if defined? @command_env
         @command_env = {
@@ -210,34 +241,7 @@ module Kitchen
 
       def compile_config()
         debug("compile_config")
-        options = []
-        options << "--extra-vars='#{self.get_extra_vars_argument}'" if conf[:extra_vars]
-        options << "--sudo" if conf[:sudo]
-        options << "--sudo-user=#{conf[:sudo_user]}" if conf[:sudo_user]
-        options << "--user=#{conf[:remote_user]}" if self.get_remote_user
-        options << "--private-key=#{conf[:private_key]}" if conf[:private_key]
-        options << "#{self.get_verbosity_argument}" if conf[:verbose]
-        options << "--diff" if conf[:diff]
-        options << "--ask-sudo-pass" if conf[:ask_sudo_pass]
-        options << "--ask-vault-pass" if conf[:ask_vault_pass]
-        options << "--vault-password-file=#{conf[:vault_password_file]}" if conf[:vault_password_file]
-        options << "--tags=%s" % self.as_list_argument(conf[:tags]) if conf[:tags]
-        options << "--skip-tags=%s" % self.as_list_argument(conf[:skip_tags]) if conf[:skip_tags]
-        options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
-        options << "--inventory-file=`which kitchen-ansible-inventory`" if conf[:generate_inv]
-        ##options << "--inventory-file=#{ssh_inv}," if ssh_inv
-        
-        # By default we limit by the current machine,
-        if conf[:limit]
-          options << "--limit=#{as_list_argument(conf[:limit])}"
-        else
-          options << "--limit=#{machine_name}"
-        end
-      
-        #Add raw argument as final thing
-        options << conf[:raw_arguments] if conf[:raw_arguments]
-
-        @command = (%w(ansible-playbook) << options << conf[:playbook]).flatten.join(" ")
+        @command = (%w(ansible-playbook) << options() << conf[:playbook]).flatten.join(" ")
         debug("Ansible push command= %s" % @command)
         info("Ansible push compile_config done")
       end
