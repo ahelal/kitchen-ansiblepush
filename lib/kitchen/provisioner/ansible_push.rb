@@ -39,9 +39,50 @@ module Kitchen
       # For tests disable if not needed
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
 
+      attr_reader :conf
+
+      # Validates the config and returns it.  Has side-effect of
+      # possibly setting @extra_vars which doesn't seem to be used
+      def conf
+        return @validated_config if defined? @validated_config
+
+        if !config[:playbook]
+          raise 'No playbook defined. Please specify one in .kitchen.yml'
+        end
+
+        if !File.exist?(config[:playbook])
+          raise "playbook '%s' could not be found. Please check path" % config[:playbook]
+        end
+
+        if config[:vault_password_file] and !File.exist?(config[:vault_password_file])
+          raise "Vault password '%s' could not be found. Please check path" % config[:vault_password_file]
+        end
+
+        # Validate that extra_vars is either a hash, or a path to an existing file
+        if config[:extra_vars]
+          extra_vars_is_valid = config[:extra_vars].kind_of?(Hash) || config[:extra_vars].kind_of?(String)
+          if config[:extra_vars].kind_of?(String)
+            # Accept the usage of '@' (e.g. '@vars.yml' and 'vars.yml' are both supported)
+            match_data = /^@?(.+)$/.match(config[:extra_vars])
+            extra_vars_path = match_data[1].to_s
+            expanded_path = Pathname.new(extra_vars_path).expand_path(Dir.pwd)
+            extra_vars_is_valid = expanded_path.exist?
+            if extra_vars_is_valid
+              @extra_vars = '@' + extra_vars_path
+            end
+          end
+          if !extra_vars_is_valid
+            raise "ansible extra_vars is in valid type: %s value: %s" % [config[:extra_vars].class.to_s, config[:extra_vars].to_s]
+          end
+        end
+        
+        info("Ansible push config validated")
+        
+        @validated_config = config
+      end
+
       def prepare_command
-        validate_config
-        prepare_inventory if config[:generate_inv]
+        prepare_inventory if conf[:generate_inv]
         compile_config
         # Place holder so a string is returned. This will execute true on remote host 
         return "true"
@@ -50,8 +91,8 @@ module Kitchen
       def install_command
         # Must install chef for busser and serverspec to work :(
         info("*************** AnsiblePush install_command ***************")
-        omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
-        chef_url = config[:chef_bootstrap_url]
+        omnibus_download_dir = conf[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
+        chef_url = conf[:chef_bootstrap_url]
         if chef_url
           <<-INSTALL
             sh -c '
@@ -94,7 +135,7 @@ module Kitchen
         info("*************** AnsiblePush run ***************")
         exec_ansible_command(@command_env, @command, "ansible-playbook")
         # idempotency test
-        if config[:idempotency_test]
+        if conf[:idempotency_test]
           info("*************** idempotency test ***************")
           @command_env["ANSIBLE_CALLBACK_PLUGINS"] = "#{File.dirname(__FILE__)}/../../../callback/"
           exec_ansible_command(@command_env, @command, "ansible-playbook")
@@ -116,7 +157,7 @@ module Kitchen
           end
         end
         info("*************** AnsiblePush end run *******************")
-        debug("[#{name}] Converge completed (#{config[:sleep]}s).")
+        debug("[#{name}] Converge completed (#{conf[:sleep]}s).")
         # Place holder so a string is returned. This will execute true on remote host 
         return "true"    
       end
@@ -144,99 +185,65 @@ module Kitchen
                         @instance_connection_option[:hostname]
                     end
         debug("hostname=" + hostname)
-        write_instance_inventory(@machine_name, hostname, config[:mygroup], @instance_connection_option)
+        write_instance_inventory(@machine_name, hostname, conf[:mygroup], @instance_connection_option)
       end
 
       def compile_config()
         debug("compile_config")
         options = []
-        options << "--extra-vars='#{self.get_extra_vars_argument}'" if config[:extra_vars]
-        options << "--sudo" if config[:sudo]
-        options << "--sudo-user=#{config[:sudo_user]}" if config[:sudo_user]
-        options << "--user=#{config[:remote_user]}" if self.get_remote_user
-        options << "--private-key=#{config[:private_key]}" if config[:private_key]
-        options << "#{self.get_verbosity_argument}" if config[:verbose]
-        options << "--diff" if config[:diff]
-        options << "--ask-sudo-pass" if config[:ask_sudo_pass]
-        options << "--ask-vault-pass" if config[:ask_vault_pass]
-        options << "--vault-password-file=#{config[:vault_password_file]}" if config[:vault_password_file]
-        options << "--tags=%s" % self.as_list_argument(config[:tags]) if config[:tags]
-        options << "--skip-tags=%s" % self.as_list_argument(config[:skip_tags]) if config[:skip_tags]
-        options << "--start-at-task=#{config[:start_at_task]}" if config[:start_at_task]
-        options << "--inventory-file=`which kitchen-ansible-inventory`" if config[:generate_inv]
+        options << "--extra-vars='#{self.get_extra_vars_argument}'" if conf[:extra_vars]
+        options << "--sudo" if conf[:sudo]
+        options << "--sudo-user=#{conf[:sudo_user]}" if conf[:sudo_user]
+        options << "--user=#{conf[:remote_user]}" if self.get_remote_user
+        options << "--private-key=#{conf[:private_key]}" if conf[:private_key]
+        options << "#{self.get_verbosity_argument}" if conf[:verbose]
+        options << "--diff" if conf[:diff]
+        options << "--ask-sudo-pass" if conf[:ask_sudo_pass]
+        options << "--ask-vault-pass" if conf[:ask_vault_pass]
+        options << "--vault-password-file=#{conf[:vault_password_file]}" if conf[:vault_password_file]
+        options << "--tags=%s" % self.as_list_argument(conf[:tags]) if conf[:tags]
+        options << "--skip-tags=%s" % self.as_list_argument(conf[:skip_tags]) if conf[:skip_tags]
+        options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
+        options << "--inventory-file=`which kitchen-ansible-inventory`" if conf[:generate_inv]
         ##options << "--inventory-file=#{ssh_inv}," if ssh_inv
         
         # By default we limit by the current machine,
-        if config[:limit]
-          options << "--limit=#{as_list_argument(config[:limit])}"
+        if conf[:limit]
+          options << "--limit=#{as_list_argument(conf[:limit])}"
         else
           options << "--limit=#{@machine_name}"
         end
       
         #Add raw argument as final thing
-        options << config[:raw_arguments] if config[:raw_arguments]
+        options << conf[:raw_arguments] if conf[:raw_arguments]
 
-        @command = (%w(ansible-playbook) << options << config[:playbook]).flatten.join(" ")
+        @command = (%w(ansible-playbook) << options << conf[:playbook]).flatten.join(" ")
         debug("Ansible push command= %s" % @command)
         @command_env = {
           "PYTHONUNBUFFERED" => "1", # Ensure Ansible output isn't buffered
           "ANSIBLE_FORCE_COLOR" => "true",
-          "ANSIBLE_HOST_KEY_CHECKING" => "#{config[:host_key_checking]}",
+          "ANSIBLE_HOST_KEY_CHECKING" => "#{conf[:host_key_checking]}",
         }
-        @command_env["ANSIBLE_CONFIG"]=config[:ansible_config] if config[:ansible_config]
+        @command_env["ANSIBLE_CONFIG"]=conf[:ansible_config] if conf[:ansible_config]
         info("Ansible push compile_config done")
       end
 
-      def validate_config()
-        if !config[:playbook]
-          raise 'No playbook defined. Please specify one in .kitchen.yml'
-        end
-
-        if !File.exist?(config[:playbook])
-          raise "playbook '%s' could not be found. Please check path" % config[:playbook]
-        end
-
-        if config[:vault_password_file] and !File.exist?(config[:vault_password_file])
-          raise "Vault password '%s' could not be found. Please check path" % config[:vault_password_file]
-        end
-
-        # Validate that extra_vars is either a hash, or a path to an existing file
-        if config[:extra_vars]
-          extra_vars_is_valid = config[:extra_vars].kind_of?(Hash) || config[:extra_vars].kind_of?(String)
-          if config[:extra_vars].kind_of?(String)
-            # Accept the usage of '@' (e.g. '@vars.yml' and 'vars.yml' are both supported)
-            match_data = /^@?(.+)$/.match(config[:extra_vars])
-            extra_vars_path = match_data[1].to_s
-            expanded_path = Pathname.new(extra_vars_path).expand_path(Dir.pwd)
-            extra_vars_is_valid = expanded_path.exist?
-            if extra_vars_is_valid
-              @extra_vars = '@' + extra_vars_path
-            end
-          end
-          if !extra_vars_is_valid
-            raise "ansible extra_vars is in valid type: %s value: %s" % [config[:extra_vars].class.to_s, config[:extra_vars].to_s]
-          end
-        end
-        
-        info("Ansible push config validated")
-      end
-
       def get_extra_vars_argument()
-        if config[:extra_vars].kind_of?(String) and config[:extra_vars] =~ /^@.+$/
+        if conf[:extra_vars].kind_of?(String) and conf[:extra_vars] =~ /^@.+$/
           # A JSON or YAML file is referenced (requires Ansible 1.3+)
-          return config[:extra_vars]
+          return conf[:extra_vars]
         else
         # Expected to be a Hash after config validation. (extra_vars as
         # JSON requires Ansible 1.2+, while YAML requires Ansible 1.3+)
-          return config[:extra_vars].to_json
+          return conf[:extra_vars].to_json
         end
       end
 
       def get_remote_user
-        if config[:remote_user]
-          return config[:remote_user]
+        if conf[:remote_user]
+          return conf[:remote_user]
         elsif !@instance_connection_option.nil? and @instance_connection_option[:username]
-          config[:remote_user] = @instance_connection_option[:username]
+          conf[:remote_user] = @instance_connection_option[:username]
           return @instance_connection_option[:username]
         else
           return false
@@ -248,9 +255,9 @@ module Kitchen
       end
 
       def get_verbosity_argument
-        if config[:verbose].to_s =~ /^v+$/
+        if conf[:verbose].to_s =~ /^v+$/
           # ansible-playbook accepts "silly" arguments like '-vvvvv' as '-vvvv' for now
-          return "-#{config[:verbose]}"
+          return "-#{conf[:verbose]}"
         else
         # safe default, in case input strays
           return '-v'
