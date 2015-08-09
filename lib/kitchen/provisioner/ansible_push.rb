@@ -141,7 +141,6 @@ module Kitchen
 
       def prepare_command
         prepare_inventory if conf[:generate_inv]
-        compile_config
         # Place holder so a string is returned. This will execute true on remote host 
         return "true"
       end
@@ -244,11 +243,6 @@ module Kitchen
                     end
         debug("hostname=" + hostname)
         write_instance_inventory(machine_name, hostname, conf[:mygroup], @instance_connection_option)
-      end
-
-      def compile_config()
-        debug("compile_config")
-        info("Ansible push compile_config done")
       end
 
       def get_extra_vars_argument()
