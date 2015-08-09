@@ -81,6 +81,15 @@ module Kitchen
         @validated_config = config
       end
 
+      attr_reader :machine_name
+
+      def machine_name
+        return @machine_name if defined? @machine_name
+        @machine_name = instance.name.gsub(/[<>]/, '').split("-").drop(1).join("-")
+        debug("machine_name=" + @machine_name.to_s)
+        @machine_name
+      end
+
       def prepare_command
         prepare_inventory if conf[:generate_inv]
         compile_config
@@ -174,18 +183,17 @@ module Kitchen
         end
       end
 
+
       def prepare_inventory
-        @machine_name = instance.name.gsub(/[<>]/, '').split("-").drop(1).join("-")
-        debug("machine_name=" + @machine_name.to_s)
         @instance_connection_option = instance.transport.instance_variable_get(:@connection_options)
         debug("instance_connection_option=" + @instance_connection_option.to_s)
         hostname =  if @instance_connection_option.nil?
-                       @machine_name
+                       machine_name
                     else
                         @instance_connection_option[:hostname]
                     end
         debug("hostname=" + hostname)
-        write_instance_inventory(@machine_name, hostname, conf[:mygroup], @instance_connection_option)
+        write_instance_inventory(machine_name, hostname, conf[:mygroup], @instance_connection_option)
       end
 
       def compile_config()
@@ -211,7 +219,7 @@ module Kitchen
         if conf[:limit]
           options << "--limit=#{as_list_argument(conf[:limit])}"
         else
-          options << "--limit=#{@machine_name}"
+          options << "--limit=#{machine_name}"
         end
       
         #Add raw argument as final thing
