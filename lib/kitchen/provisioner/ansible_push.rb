@@ -90,6 +90,17 @@ module Kitchen
         @machine_name
       end
 
+      def command_env
+        return @command_env if defined? @command_env
+        @command_env = {
+          "PYTHONUNBUFFERED" => "1", # Ensure Ansible output isn't buffered
+          "ANSIBLE_FORCE_COLOR" => "true",
+          "ANSIBLE_HOST_KEY_CHECKING" => "#{conf[:host_key_checking]}",
+        }
+        @command_env["ANSIBLE_CONFIG"]=conf[:ansible_config] if conf[:ansible_config]
+        @command_env
+      end
+
       def prepare_command
         prepare_inventory if conf[:generate_inv]
         compile_config
@@ -142,12 +153,13 @@ module Kitchen
 
       def run_command
         info("*************** AnsiblePush run ***************")
-        exec_ansible_command(@command_env, @command, "ansible-playbook")
+        exec_ansible_command(command_env(), @command, "ansible-playbook")
         # idempotency test
         if conf[:idempotency_test]
           info("*************** idempotency test ***************")
-          @command_env["ANSIBLE_CALLBACK_PLUGINS"] = "#{File.dirname(__FILE__)}/../../../callback/"
-          exec_ansible_command(@command_env, @command, "ansible-playbook")
+          exec_ansible_command(command_env().merge({
+             "ANSIBLE_CALLBACK_PLUGINS" => "#{File.dirname(__FILE__)}/../../../callback/"
+            }), @command, "ansible-playbook")
           # Check ansible callback if changes has occured in the second run
           file_path = "/tmp/kitchen_ansible_callback/changes"
           if File.file?(file_path)
@@ -227,12 +239,6 @@ module Kitchen
 
         @command = (%w(ansible-playbook) << options << conf[:playbook]).flatten.join(" ")
         debug("Ansible push command= %s" % @command)
-        @command_env = {
-          "PYTHONUNBUFFERED" => "1", # Ensure Ansible output isn't buffered
-          "ANSIBLE_FORCE_COLOR" => "true",
-          "ANSIBLE_HOST_KEY_CHECKING" => "#{conf[:host_key_checking]}",
-        }
-        @command_env["ANSIBLE_CONFIG"]=conf[:ansible_config] if conf[:ansible_config]
         info("Ansible push compile_config done")
       end
 
