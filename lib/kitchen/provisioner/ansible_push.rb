@@ -186,6 +186,7 @@ module Kitchen
               echo "-----> Installing python-apt if needed"
               /usr/bin/python -c "import apt, apt_pkg" 2>&1 > /dev/null || \
                 [ -x /usr/bin/apt-get ] && \
+                sudo /usr/bin/apt-get update && \
                 sudo /usr/bin/apt-get install python-apt -y -q
               echo "-----> End Installing python-apt if needed"
             INSTALL
