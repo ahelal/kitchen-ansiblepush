@@ -232,17 +232,22 @@ module Kitchen
         end
       end
 
-
-      def prepare_inventory
+      def instance_connection_option
+        return @instance_connection_option if defined? @instance_connection_option
         @instance_connection_option = instance.transport.instance_variable_get(:@connection_options)
         debug("instance_connection_option=" + @instance_connection_option.to_s)
-        hostname =  if @instance_connection_option.nil?
+        @instance_connection_option
+      end
+
+      def prepare_inventory
+        hostname =  if instance_connection_option().nil?
                        machine_name
                     else
-                        @instance_connection_option[:hostname]
+                        instance_connection_option()[:hostname]
                     end
         debug("hostname=" + hostname)
-        write_instance_inventory(machine_name, hostname, conf[:mygroup], @instance_connection_option)
+        write_instance_inventory(machine_name, hostname,
+            conf[:mygroup], instance_connection_option())
       end
 
       def get_extra_vars_argument()
@@ -259,9 +264,9 @@ module Kitchen
       def get_remote_user
         if conf[:remote_user]
           return conf[:remote_user]
-        elsif !@instance_connection_option.nil? and @instance_connection_option[:username]
-          conf[:remote_user] = @instance_connection_option[:username]
-          return @instance_connection_option[:username]
+        elsif !instance_connection_option().nil? and instance_connection_option()[:username]
+          conf[:remote_user] = instance_connection_option()[:username]
+          return instance_connection_option()[:username]
         else
           return false
         end
