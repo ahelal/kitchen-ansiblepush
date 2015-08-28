@@ -175,16 +175,16 @@ module Kitchen
           if (version_string.split('.').map{|s|s.to_i} <=> [1, 6, 0]) < 0
             info("Ansible Version < 1.6.0")
             scripts << <<-INSTALL
-              # Older versions of ansible do not set up python-apt by
-              # default on Ubuntu
+              # Older versions of ansible do not set up python-apt or
+              # python-pycurl by default on Ubuntu
               # https://github.com/ansible/ansible/issues/4079
               # https://github.com/ansible/ansible/issues/6910
-              echo "-----> Installing python-apt if needed"
-              /usr/bin/python -c "import apt, apt_pkg" 2>&1 > /dev/null || \
+              echo "-----> Installing python-apt, python-pycurl if needed"
+              /usr/bin/python -c "import apt, apt_pkg, pycurl" 2>&1 > /dev/null || \
                 [ -x /usr/bin/apt-get ] && \
                 sudo /usr/bin/apt-get update && \
-                sudo /usr/bin/apt-get install python-apt -y -q
-              echo "-----> End Installing python-apt if needed"
+                sudo /usr/bin/apt-get install python-apt python-pycurl -y -q
+              echo "-----> End Installing python-apt, python-pycurl if needed"
             INSTALL
           end
 
