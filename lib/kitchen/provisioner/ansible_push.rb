@@ -40,8 +40,6 @@ module Kitchen
       # For tests disable if not needed
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
 
-      attr_reader :conf
-
       # Validates the config and returns it.  Has side-effect of
       # possibly setting @extra_vars which doesn't seem to be used
       def conf
@@ -81,8 +79,6 @@ module Kitchen
         
         @validated_config = config
       end
-
-      attr_reader :machine_name
 
       def machine_name
         return @machine_name if defined? @machine_name
