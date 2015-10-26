@@ -181,9 +181,9 @@ module Kitchen
               # https://github.com/ansible/ansible/issues/6910
               echo "-----> Installing python-apt, python-pycurl if needed"
               /usr/bin/python -c "import apt, apt_pkg, pycurl" 2>&1 > /dev/null || \
-                [ -x /usr/bin/apt-get ] && \
+                { [ -x /usr/bin/apt-get ] && \
                 sudo /usr/bin/apt-get update && \
-                sudo /usr/bin/apt-get install python-apt python-pycurl -y -q
+                sudo /usr/bin/apt-get install python-apt python-pycurl -y -q }
               echo "-----> End Installing python-apt, python-pycurl if needed"
             INSTALL
           end
