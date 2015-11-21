@@ -39,5 +39,6 @@ build.sh
 .idea
 .kitchen.yml
 Gemfile.lock
-
+.bundler
+bundler_gems
 *.pyc
