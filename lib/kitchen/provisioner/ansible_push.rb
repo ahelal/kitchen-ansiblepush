@@ -42,6 +42,8 @@ module Kitchen
       # For tests disable if not needed
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
 
+      default_config :support_older_version, false
+
       # Validates the config and returns it.  Has side-effect of
       # possibly setting @extra_vars which doesn't seem to be used
       def conf
@@ -148,9 +150,12 @@ module Kitchen
       def install_command
         # Must install chef for busser and serverspec to work :(
         info("*************** AnsiblePush install_command ***************")
-        stdin, stdout, stderr = Open3.popen3(command_env(), command() + " --version") 
-        version_output = stdout.read()
-        version_string = version_output.split()[1]
+        older_version = conf[:support_older_version]
+        if older_version
+          stdin, stdout, stderr = Open3.popen3(command_env(), command() + " --version") 
+          version_output = stdout.read()
+          version_string = version_output.split()[1]
+        end
 
         omnibus_download_dir = conf[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
         chef_url = conf[:chef_bootstrap_url]
@@ -175,7 +180,7 @@ module Kitchen
             fi
           INSTALL
 
-          if (version_string.split('.').map{|s|s.to_i} <=> [1, 6, 0]) < 0
+          if (older_version) and(version_string.split('.').map{|s|s.to_i} <=> [1, 6, 0]) < 0
             info("Ansible Version < 1.6.0")
             scripts << <<-INSTALL
               # Older versions of ansible do not set up python-apt or
