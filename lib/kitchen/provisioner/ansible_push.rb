@@ -15,6 +15,7 @@ module Kitchen
   module Provisioner
     class AnsiblePush < Base
       kitchen_provisioner_api_version 2
+      default_config :ansible_playbook_bin, "ansible-playbook"
       default_config :ansible_config, nil
       default_config :verbose, nil
       default_config :diff, nil
@@ -34,6 +35,7 @@ module Kitchen
       default_config :mygroup, nil
       default_config :playbook, nil
       default_config :generate_inv, true
+      default_config :generate_inv_path, "`which kitchen-ansible-inventory`"
       default_config :raw_arguments, nil
       default_config :idempotency_test, false
 
@@ -103,7 +105,7 @@ module Kitchen
         options << "--tags=%s" % self.as_list_argument(conf[:tags]) if conf[:tags]
         options << "--skip-tags=%s" % self.as_list_argument(conf[:skip_tags]) if conf[:skip_tags]
         options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
-        options << "--inventory-file=`which kitchen-ansible-inventory`" if conf[:generate_inv]
+        options << "--inventory-file=#{conf[:generate_inv_path]}" if conf[:generate_inv]
         ##options << "--inventory-file=#{ssh_inv}," if ssh_inv
 
         # By default we limit by the current machine,
@@ -120,7 +122,8 @@ module Kitchen
 
       def command
         return @command if defined? @command
-        @command = (%w(ansible-playbook) << options() << conf[:playbook]).flatten.join(" ")
+        @command = [conf[:ansible_playbook_bin]]
+        @command =  (@command << options() << conf[:playbook]).flatten.join(" ")
         debug("Ansible push command= %s" % @command)
         @command
       end
