@@ -11,7 +11,7 @@ Gem::Specification.new do |gem|
   gem.licenses          = ['MIT']
   gem.homepage          = "https://github.com/ahelal/kitchen-ansiblepush"
   gem.summary           = "ansible provisioner for test-kitchen"
-  candidates            = Dir.glob("{lib}/**/*") + ['README.md', 'kitchen-ansiblepush.gemspec', 'callback/changes_callback.py']
+  candidates            = Dir.glob("{lib}/**/*") + ['README.md', 'kitchen-ansiblepush.gemspec', 'callback/changes.py']
   gem.files             = candidates.sort
   gem.platform          = Gem::Platform::RUBY
   gem.require_paths     = ['lib']
