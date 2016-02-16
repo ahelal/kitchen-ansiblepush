@@ -2,9 +2,6 @@
 
 A test-kitchen plugin that adds the support for ansible in push mode
 
-## TODO
-* Tests
-
 ## Intro
 This kitchen plugin adds ansible as a provisioner in push mode. Ansible will run from your host rather than run from guest machines.  
 
@@ -59,3 +56,8 @@ If you want to check your code is idempotent you can use the idempotency_test. E
 ```yaml
     idempotency_test: True
 ```
+
+## TODO
+- PRs for tests is highligh appreciated
+
+
