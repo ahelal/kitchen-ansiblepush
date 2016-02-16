@@ -58,6 +58,6 @@ If you want to check your code is idempotent you can use the idempotency_test. E
 ```
 
 ## TODO
-- PRs for tests is highligh appreciated
+- Tests (PRs for tests is highligh appreciated)
 
 
