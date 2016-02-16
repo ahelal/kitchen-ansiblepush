@@ -1,0 +1,32 @@
+---
+driver                 :
+    # TRAVIS: local
+    # NO TRAVIS: vagrant
+    name               : <%= if ENV['TRAVIS'] then 'localhost' else 'vagrant' end  %>
+
+provisioner:
+    name               : ansible_push
+    verbose            : "vvvv"
+    ansible_config     : "tests/ansible.cfg"
+    idempotency_test   : True
+    # TRAVIS: True
+    # NO TRAVIS: False
+    sudo               : <%= if ENV['TRAVIS'] then 'True' else 'False' end  %>
+
+platforms:
+    # travistravis
+     - name            : <%= if ENV['TRAVIS'] then 'travis' else 'ubuntu-14.04' end %>
+       provisioner     :
+         raw_arguments : <%= if ENV['TRAVIS'] then '-c local' else '' end %>
+       # Should be safily ignored by Travis since connection local
+       driver          :
+         box           : ubuntu/trusty64
+       customize       :
+        cpus           : 2
+        memory         : 2048
+
+suites:
+  - name               : simple
+    provisioner        :
+        playbook       : "tests/application/simple.yml"
+        extra_vars     : { 'kitchen_connection': 'smart', 'kitchen_hosts': '<%= if ENV['TRAVIS'] then 'localhost' else 'all' end %>' }

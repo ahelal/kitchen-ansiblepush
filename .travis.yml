@@ -1,0 +1,29 @@
+---
+language: ruby
+rvm:
+  - 1.9.3
+  - 2.0
+  - 2.1.5
+
+before_install:
+  # Make sure everything's up to date.
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq python-apt python-pycurl git python-pip ruby ruby-dev build-essential autoconf
+  - gem install bundler -v 1.11.2
+  # Get ansible install
+  - curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/example/travis-install -o /tmp/travis-ansible-setup.sh
+  - python --version 
+  - ruby --version
+
+install:
+  - bash /tmp/travis-ansible-setup.sh
+  - gem build kitchen-ansiblepush.gemspec
+  - bundle install
+
+script:
+    - ansible --version
+    - export TRAVIS=True
+    - bundle exec kitchen test
+
+after_success:
+    - echo "Success"

@@ -37,8 +37,10 @@ build/
 build.sh
 .kitchen/*
 .idea
-.kitchen.yml
 Gemfile.lock
 .bundler
 bundler_gems
 *.pyc
+
+#
+bin/*

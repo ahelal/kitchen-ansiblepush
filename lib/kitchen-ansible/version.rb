@@ -1,5 +1,5 @@
 module Kitchen
   module AnsiblePush
-    VERSION = "0.3.7-1"
+    VERSION = "0.3.8"
   end
 end

@@ -3,6 +3,7 @@ require 'kitchen'
 require 'kitchen/provisioner/base'
 require 'kitchen-ansible/util-inventory.rb'
 require 'json'
+require 'securerandom'
 
 module Kitchen
 
