@@ -2,7 +2,10 @@ import json
 import os
 import errno
 
-from ansible.plugins.callback import CallbackBase
+try:
+    from ansible.plugins.callback import CallbackBase
+except ImportError:
+    CallbackBase = object
 
 class CallbackModule(CallbackBase):
     """
