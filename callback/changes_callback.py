@@ -2,16 +2,15 @@ import json
 import os
 import errno
 
-change_dir = "/tmp/kitchen_ansible_callback"
-change_file = change_dir + "/changes"
-
 class CallbackModule(object):
     def __init__(self):
+        self.change_file = os.getenv('PLUGIN_CHANGES_FILE', "/tmp/kitchen_ansible_callback/changes")
+        change_dir = os.path.dirname(self.change_file)
         if not os.path.exists(change_dir):
             os.makedirs(change_dir)
         
         try:
-            os.remove(change_file)
+            os.remove(self.change_file)
         except OSError as e: # this would be "except OSError, e:" before Python 2.6
             if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
                 raise # re-raise exception if a different error occured
@@ -25,14 +24,14 @@ class CallbackModule(object):
         changed_data["changed_module_name"] = invocation.get("module_name", "")
         changed_data["host"] = host
         if name:
-            changed_data["task_name"] = name
+            changed_data["task_name"] = str(name)
         changed_data["changed_msg"] = res.get("msg", "")
 
         try:
-            with open(change_file, 'at') as the_file:
+            with open(self.change_file, 'at') as the_file:
                 the_file.write(json.dumps(changed_data) + "\n")
         except Exception, e:
-            print "Ansible callback idempotency: Write to file failed '%s' error:'%s'" % (change_file, e)
+            print "Ansible callback idempotency: Write to file failed '%s' error:'%s'" % (self.change_file, e)
             exit(1)
 
     def on_any(self, *args, **kwargs):

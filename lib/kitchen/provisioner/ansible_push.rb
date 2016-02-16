@@ -218,11 +218,12 @@ module Kitchen
         # idempotency test
         if conf[:idempotency_test]
           info("*************** idempotency test ***************")
+          file_path = "/tmp/kitchen_ansible_callback/#{SecureRandom.uuid}.changes"
           exec_ansible_command(command_env().merge({
-             "ANSIBLE_CALLBACK_PLUGINS" => "#{File.dirname(__FILE__)}/../../../callback/"
+             "ANSIBLE_CALLBACK_PLUGINS" => "#{File.dirname(__FILE__)}/../../../callback/",
+             "PLUGIN_CHANGES_FILE" => file_path,
             }), command(), "ansible-playbook")
           # Check ansible callback if changes has occured in the second run
-          file_path = "/tmp/kitchen_ansible_callback/changes"
           if File.file?(file_path)
             task = 0
             info("idempotency test [Failed]")
@@ -232,7 +233,7 @@ module Kitchen
                 info(" #{task}> #{line.strip}")
               end
             end
-            raise "idempotency test Failed. Number of non idemptent tasks: #{task}"
+            raise "idempotency test Failed. Number of non idempotent tasks: #{task}"
 
           else
             info("idempotency test [passed]")
