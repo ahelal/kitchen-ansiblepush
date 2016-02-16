@@ -13,7 +13,7 @@ before_install:
 install:
   - bash /tmp/travis-ansible-setup.sh
   - gem build kitchen-ansiblepush.gemspec
-#  - bundle install
+  - bundle install
 
 script:
     - ansible --version
