@@ -42,3 +42,6 @@ Gemfile.lock
 .bundler
 bundler_gems
 *.pyc
+
+#
+bin/*
