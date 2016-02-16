@@ -14,7 +14,7 @@ before_install:
   - curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/example/travis-install -o /tmp/travis-ansible-setup.sh
   - python --version 
   - ruby --version
-  - bundle show
+  - bundler check
 install:
   - bash /tmp/travis-ansible-setup.sh
   - gem build kitchen-ansiblepush.gemspec
