@@ -5,6 +5,7 @@ import errno
 try:
     from ansible.plugins.callback import CallbackBase
 except ImportError:
+    print "Fallback to Ansible 1.x compatibility"
     CallbackBase = object
 
 class CallbackModule(CallbackBase):
