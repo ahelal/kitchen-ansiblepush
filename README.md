@@ -60,6 +60,7 @@ If you want to check your code is idempotent you can use the idempotency_test. E
 If your running ansible V2 you need to white list the callback ``` callback_whitelist = changes``` in **ansible.cfg**
 
 ## TODO
+- Enable envirionment var ANSIBLE_CALLBACK_WHITELIST="changes" before call
 - Tests (PRs for tests is highligh appreciated)
 
 
