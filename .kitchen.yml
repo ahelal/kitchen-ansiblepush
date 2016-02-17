@@ -4,7 +4,7 @@
 name_var                    : <% name = if ENV['TRAVIS'] then 'localhost' else 'vagrant' end  %>
 name                        : <%= name %>
 driver                      :
-  name                      : <%= if ENV['TEST_EC2'] then 'ec2' else 'vagrant' end  %>
+  name                      : <%= name %>
   # EC2 Driver will run on Jenkins and vagrant Driver will run on dev machines
   box                       : ubuntu/trusty64
   customize                 :
@@ -36,8 +36,8 @@ suites:
     provisioner             :
       playbook              : "tests/application/simple.yml"
 
-  - name                    : non-idempotent
+  - name                    : notidempotent
     provisioner             :
-      playbook              : "tests/application/non-idempotent.yml"
+      playbook              : "tests/application/notidempotent.yml"
       fail_non_idempotent   : false
 
