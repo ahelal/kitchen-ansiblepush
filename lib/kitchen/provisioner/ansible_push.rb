@@ -39,6 +39,7 @@ module Kitchen
       default_config :generate_inv_path, "`which kitchen-ansible-inventory`"
       default_config :raw_arguments, nil
       default_config :idempotency_test, false
+      default_config :fail_non_idempotent, true
 
       # For tests disable if not needed
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
@@ -234,8 +235,11 @@ module Kitchen
                 info(" #{task}> #{line.strip}")
               end
             end
-            raise "idempotency test Failed. Number of non idempotent tasks: #{task}"
-
+            if conf[:fail_non_idempotent]
+              raise "idempotency test Failed. Number of non idempotent tasks: #{task}"
+            else
+              info("Warning idempotency test [failed]")  
+            end
           else
             info("idempotency test [passed]")
           end
