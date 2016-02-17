@@ -8,4 +8,4 @@
     - name: Run dummy Copy
       copy:
         content="{{ inventory_hostname }}"
-        dest="/var/test.txt"
+        dest="/var/{{ inventory_hostname }}-test.txt"
