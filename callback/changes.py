@@ -2,20 +2,35 @@ import json
 import os
 import errno
 
-class CallbackModule(object):
+try:
+    from ansible.plugins.callback import CallbackBase
+except ImportError:
+    print "Fallback to Ansible 1.x compatibility"
+    CallbackBase = object
+
+class CallbackModule(CallbackBase):
+    """
+    This Ansible callback plugin flags idempotency tests failures
+    """
+    CALLBACK_VERSION = 2.0
+    CALLBACK_TYPE = 'notification'
+    CALLBACK_NAME = 'changes'
+    CALLBACK_NEEDS_WHITELIST = True
+
     def __init__(self):
+        super(CallbackModule, self).__init__()
+
         self.change_file = os.getenv('PLUGIN_CHANGES_FILE', "/tmp/kitchen_ansible_callback/changes")
         change_dir = os.path.dirname(self.change_file)
         if not os.path.exists(change_dir):
             os.makedirs(change_dir)
-        
+
         try:
             os.remove(self.change_file)
         except OSError as e: # this would be "except OSError, e:" before Python 2.6
             if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
                 raise # re-raise exception if a different error occured
 
-        
 
     def write_changed_to_file(self, host, res, name=None):
         changed_data = dict()
