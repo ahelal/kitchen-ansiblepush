@@ -26,7 +26,7 @@ script:
     - bundle exec kitchen test simple
     - bundle exec kitchen test notidempotent | tee /tmp/notidempotent && export exit_status=${PIPESTATUS[0]}
     - failed_nonotidempotent=$(cat /tmp/notidempotent | grep "idempotency test \[Failed\]" | wc -l)
-    - if [ $failed_nonotidempotent -ne 2 ] ; then exit 1 ; fi
+    - if [ $failed_nonotidempotent -ne 2 ] ; then echo "Non idempotent tasks $failed_nonotidempotent. :( fauled" exit 1 ; fi
     - exit exit_status
 
 after_success:
