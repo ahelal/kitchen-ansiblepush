@@ -40,6 +40,7 @@ module Kitchen
       default_config :raw_arguments, nil
       default_config :idempotency_test, false
       default_config :fail_non_idempotent, true
+      default_config :use_instance_name, false
 
       # For tests disable if not needed
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
@@ -88,7 +89,11 @@ module Kitchen
 
       def machine_name
         return @machine_name if defined? @machine_name
-        @machine_name = instance.name.gsub(/[<>]/, '').split("-").drop(1).join("-")
+        unless config[:use_instance_name]
+          @machine_name = instance.name.gsub(/[<>]/, '').split("-").drop(1).join("-")
+        else
+          @machine_name = instance.name.gsub(/[<>]/, '')
+        end
         debug("machine_name=" + @machine_name.to_s)
         @machine_name
       end
