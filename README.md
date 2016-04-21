@@ -1,4 +1,5 @@
 # kitchen-ansiblepush
+[![Gem Version](https://badge.fury.io/rb/kitchen-ansiblepush.svg)](https://badge.fury.io/rb/kitchen-ansiblepush)
 
 A test-kitchen plugin that adds the support for ansible in push mode
 
