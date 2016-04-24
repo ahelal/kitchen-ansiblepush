@@ -1,6 +1,7 @@
 # kitchen-ansiblepush
 [![Gem Version](https://badge.fury.io/rb/kitchen-ansiblepush.svg)](https://badge.fury.io/rb/kitchen-ansiblepush)
 [![Gem Downloads](http://ruby-gem-downloads-badge.herokuapp.com/kitchen-ansiblepush?type=total&color=brightgreen)](https://rubygems.org/gems/kitchen-ansiblepush)
+[![Build Status](https://travis-ci.org/ahelal/kitchen-ansiblepush.svg?branch=master)](https://travis-ci.org/ahelal/kitchen-ansiblepush)
 
 A test-kitchen plugin that adds the support for ansible in push mode
 
