@@ -22,6 +22,7 @@ install:
 
 script:
     - ansible --version
+    - bundle exec rspec --require spec_helper --format d
     - export TRAVIS=True
     - bundle exec kitchen test simple
     - bundle exec kitchen test notidempotent | tee /tmp/notidempotent

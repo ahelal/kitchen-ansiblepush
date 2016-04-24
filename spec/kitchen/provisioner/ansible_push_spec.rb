@@ -70,11 +70,11 @@ describe Kitchen::Provisioner::AnsiblePush do
     end
   end
 
-  describe "#install_command" do
-    it "should install chef" do
-      expect(provisioner.install_command).to match(/install.sh/)
-    end
-	end
+ #  describe "#install_command" do
+ #    it "should install chef" do
+ #      expect(provisioner.install_command).to match(/install.sh/)
+ #    end
+	# end
 
  #  describe "#run_command" do
  #  	#puts provisioner.run_command
