@@ -53,16 +53,23 @@ provisioner         :
     host_key_checking   : false
     generate_inv        : true
     use_instance_name   : false  # use short (platform) instead of instance name by default
-
+    idempotency_test    : False
 ```
 ## idempotency test
 If you want to check your code is idempotent you can use the idempotency_test. Essentially, this will run Ansible twice and check nothing changed in the next run. If something changed it will list the tasks. Note: If your using Ansible callback in your config this might conflict.
 ```yaml
     idempotency_test: True
+    fail_non_idempotent: True
 ```
 
 If your running ansible V2 you need to white list the callback ``` callback_whitelist = changes``` in **ansible.cfg**
+You can also choose to not to fail if idempotency test fails.
 
+## Disable chef installation
+By default chef is installed and serverspec stuff. if you dont want to install 
+```yaml
+chef_bootstrap_url: nil
+```
 ## TODO
 - Enable envirionment var ANSIBLE_CALLBACK_WHITELIST="changes" before call
 - Tests (PRs for tests is highligh appreciated)
