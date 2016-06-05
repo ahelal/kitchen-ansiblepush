@@ -115,6 +115,7 @@ module Kitchen
         options << "--skip-tags=%s" % self.as_list_argument(conf[:skip_tags]) if conf[:skip_tags]
         options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
         options << "--inventory-file=#{conf[:generate_inv_path]}" if conf[:generate_inv]
+        options << "--ssh-extra-args='-o IdentitiesOnly=yes'" # only use the specific kitchen ssh key
         ##options << "--inventory-file=#{ssh_inv}," if ssh_inv
 
         # By default we limit by the current machine,
