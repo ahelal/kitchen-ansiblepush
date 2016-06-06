@@ -65,6 +65,15 @@ If you want to check your code is idempotent you can use the idempotency_test. E
 If your running ansible V2 you need to white list the callback ``` callback_whitelist = changes``` in **ansible.cfg**
 You can also choose to not to fail if idempotency test fails.
 
+##  Ansible version
+Since ansiblepush uses the host to run Ansible. you can simply specify the path of your ansible-playbook executable in your .kitchen.yml
+```yaml
+ansible_playbook_bin : /path/to/ansible-playbook
+```
+
+You can use venv and install multi version of ansible or if you prefer you can use an automated installer [ansible-setup](https://github.com/AutomationWIthAnsible/ansible-setup) you can install multi version of ansible.
+For further example you can check a matrix test [ansible-usermanage](https://github.com/AutomationWithAnsible/ansible-usermanage/blob/master/.kitchen.yml)
+
 ## Disable chef installation
 By default chef is installed and serverspec stuff. if you dont want to install 
 ```yaml
