@@ -33,6 +33,7 @@ module Kitchen
       default_config :skip_tags, nil
       default_config :start_at_task, nil
       default_config :host_key_checking, false
+      default_config :ssh_extra_args, nil  # only available in ansible v2.1 and up
       default_config :mygroup, nil
       default_config :playbook, nil
       default_config :generate_inv, true
@@ -81,9 +82,9 @@ module Kitchen
             raise "ansible extra_vars is in valid type: %s value: %s" % [config[:extra_vars].class.to_s, config[:extra_vars].to_s]
           end
         end
-        
+
         info("Ansible push config validated")
-        
+
         @validated_config = config
       end
 
@@ -115,7 +116,7 @@ module Kitchen
         options << "--skip-tags=%s" % self.as_list_argument(conf[:skip_tags]) if conf[:skip_tags]
         options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
         options << "--inventory-file=#{conf[:generate_inv_path]}" if conf[:generate_inv]
-        options << "--ssh-extra-args='-o IdentitiesOnly=yes'" # only use the specific kitchen ssh key
+        options << "--ssh-extra-args='#{conf[:ssh_extra_args]}'" if conf[:ssh_extra_args]
         ##options << "--inventory-file=#{ssh_inv}," if ssh_inv
 
         # By default we limit by the current machine,
@@ -151,7 +152,7 @@ module Kitchen
 
       def prepare_command
         prepare_inventory if conf[:generate_inv]
-        # Place holder so a string is returned. This will execute true on remote host 
+        # Place holder so a string is returned. This will execute true on remote host
         return "true"
       end
 
@@ -160,7 +161,7 @@ module Kitchen
         info("*************** AnsiblePush install_command ***************")
         older_version = conf[:support_older_version]
         if older_version
-          stdin, stdout, stderr = Open3.popen3(command_env(), command() + " --version") 
+          stdin, stdout, stderr = Open3.popen3(command_env(), command() + " --version")
           version_output = stdout.read()
           version_string = version_output.split()[1]
         end
@@ -235,7 +236,7 @@ module Kitchen
           if File.file?(file_path)
             task = 0
             info("idempotency test [Failed]")
-            File.open(file_path, "r") do |f| 
+            File.open(file_path, "r") do |f|
               f.each_line do |line|
                 task += 1
                 info(" #{task}> #{line.strip}")
@@ -244,7 +245,7 @@ module Kitchen
             if conf[:fail_non_idempotent]
               raise "idempotency test Failed. Number of non idempotent tasks: #{task}"
             else
-              info("Warning idempotency test [failed]")  
+              info("Warning idempotency test [failed]")
             end
           else
             info("idempotency test [passed]")
@@ -252,8 +253,8 @@ module Kitchen
         end
         info("*************** AnsiblePush end run *******************")
         debug("[#{name}] Converge completed (#{conf[:sleep]}s).")
-        # Place holder so a string is returned. This will execute true on remote host 
-        return "true"    
+        # Place holder so a string is returned. This will execute true on remote host
+        return "true"
       end
 
       protected
