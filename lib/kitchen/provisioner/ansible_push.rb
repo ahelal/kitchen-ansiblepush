@@ -157,8 +157,8 @@ module Kitchen
       def install_command
         # Must install chef for busser and serverspec to work :(
         info("*************** AnsiblePush install_command ***************")
-        older_version = conf[:support_older_version]
-        if older_version
+        support_older_version = conf[:support_older_version]
+        if support_older_version
           stdin, stdout, stderr = Open3.popen3(command_env(), command() + " --version") 
           version_output = stdout.read()
           version_string = version_output.split()[1]
@@ -187,7 +187,7 @@ module Kitchen
             fi
           INSTALL
 
-          if (older_version) and(version_string.split('.').map{|s|s.to_i} <=> [1, 6, 0]) < 0
+          if (support_older_version) and (version_string.split('.').map{|s|s.to_i} <=> [1, 6, 0]) < 0
             info("Ansible Version < 1.6.0")
             scripts << <<-INSTALL
               # Older versions of ansible do not set up python-apt or
