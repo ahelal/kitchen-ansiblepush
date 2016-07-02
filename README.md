@@ -80,11 +80,51 @@ By default chef is installed and serverspec stuff. if you dont want to install
 chef_bootstrap_url: nil
 ```
 
+## Pattern of usage
+You can use ansible push  with different pattern. I will list some of the ways that I use it, But by no means they are the only patterns.
+### Roles
+
+You can use ansible push when developing roles. My prefered method is use Gemfile within my role
+
+```ruby
+source "https://rubygems.org"
+group :development do
+  gem 'test-kitchen'
+  gem 'kitchen-vagrant' 
+  gem 'kitchen-ansiblepush'
+end
+```
+I then run ```bundle install``` and commit my *Gemfile.lock* I also ignore ```.kitchen```
+
+A typical structure of an ansible role
+```yaml
+defaults
+handlers
+meta
+tasks
+templates
+vars
+Gemfile
+Gemfile.lock
+.gitingore
+tests
+    \_ ansible.cfg
+    \_ integration
+            \_ server           
+                \_ server.yml   # my play that will test something
+                \_ serverspec  
+            \_ worker
+                \_ worker.yml # my play that will test something
+                \_ serverspec
+
+```
+
 ## Real example usages
 - https://github.com/hellofresh/ansible-deployment
 - https://github.com/AutomationWithAnsible/ansible-usermanage
 - https://github.com/ahelal/ansible-concourse
 - https://github.com/danrue/ansible-variables
+- https://github.com/knakayama/kitchen-ansiblepush-demo
 
 ## TODO
 - Enable envirionment var ANSIBLE_CALLBACK_WHITELIST="changes" before call
