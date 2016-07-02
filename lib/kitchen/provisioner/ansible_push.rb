@@ -267,10 +267,11 @@ module Kitchen
                         instance_connection_option()[:hostname]
                     end
         debug("hostname=" + hostname)
-
+        # Generate hosts
         hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option())
         write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
-        #write_group_inventory(groups) if conf[:groups]
+        # Generate groups (if defined)
+        write_var_to_yaml("#{TEMP_GROUP_FILE}", conf[:groups]) if conf[:groups]
       end
 
       def get_extra_vars_argument()
