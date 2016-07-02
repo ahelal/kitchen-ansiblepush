@@ -6,7 +6,6 @@ require 'json'
 require 'securerandom'
 
 module Kitchen
-
   class Busser
     def non_suite_dirs
       %w{data}
@@ -16,7 +15,7 @@ module Kitchen
   module Provisioner
     class AnsiblePush < Base
       kitchen_provisioner_api_version 2
-      default_config :ansible_playbook_bin, "ansible-playbook"
+      default_config :ansible_playbook_bin, 'ansible-playbook'
       default_config :ansible_config, nil
       default_config :verbose, nil
       default_config :diff, nil
@@ -36,14 +35,14 @@ module Kitchen
       default_config :mygroup, nil
       default_config :playbook, nil
       default_config :generate_inv, true
-      default_config :generate_inv_path, "`which kitchen-ansible-inventory`"
+      default_config :generate_inv_path, '`which kitchen-ansible-inventory`'
       default_config :raw_arguments, nil
       default_config :idempotency_test, false
       default_config :fail_non_idempotent, true
       default_config :use_instance_name, false
 
       # For tests disable if not needed
-      default_config :chef_bootstrap_url, "https://omnitruck.chef.io/install.sh"
+      default_config :chef_bootstrap_url, 'https://omnitruck.chef.io/install.sh'
 
 
       # Validates the config and returns it.  Has side-effect of
@@ -51,13 +50,9 @@ module Kitchen
       def conf
         return @validated_config if defined? @validated_config
 
-        if !config[:playbook]
-          raise 'No playbook defined. Please specify one in .kitchen.yml'
-        end
-
-        if !File.exist?(config[:playbook])
-          raise "playbook '%s' could not be found. Please check path" % config[:playbook]
-        end
+        raise 'No playbook defined. Please specify one in .kitchen.yml' unless config[:playbook]
+        
+        raise "playbook '%s' could not be found. Please check path" % config[:playbook] unless File.exist?(config[:playbook])
 
         if config[:vault_password_file] and !File.exist?(config[:vault_password_file])
           raise "Vault password '%s' could not be found. Please check path" % config[:vault_password_file]
@@ -206,15 +201,15 @@ module Kitchen
       end
 
       def run_command
-        info("*************** AnsiblePush run ***************")
-        exec_ansible_command(command_env(), command(), "ansible-playbook")
+        info('*************** AnsiblePush run ***************')
+        exec_ansible_command(command_env(), command(), 'ansible-playbook')
         # idempotency test
         if conf[:idempotency_test]
-          info("*************** idempotency test ***************")
+          info('*************** idempotency test ***************')
           file_path = "/tmp/kitchen_ansible_callback/#{SecureRandom.uuid}.changes"
           exec_ansible_command(command_env().merge({
-             "ANSIBLE_CALLBACK_PLUGINS" => "#{File.dirname(__FILE__)}/../../../callback/",
-             "PLUGIN_CHANGES_FILE" => file_path,
+             'ANSIBLE_CALLBACK_PLUGINS' => "#{File.dirname(__FILE__)}/../../../callback/",
+             'PLUGIN_CHANGES_FILE' => file_path,
             }), command(), "ansible-playbook")
           # Check ansible callback if changes has occured in the second run
           if File.file?(file_path)
@@ -229,13 +224,13 @@ module Kitchen
             if conf[:fail_non_idempotent]
               raise "idempotency test Failed. Number of non idempotent tasks: #{task}"
             else
-              info("Warning idempotency test [failed]")  
+              info('Warning idempotency test [failed]')  
             end
           else
-            info("idempotency test [passed]")
+            info('idempotency test [passed]')
           end
         end
-        info("*************** AnsiblePush end run *******************")
+        info('*************** AnsiblePush end run *******************')
         debug("[#{name}] Converge completed (#{conf[:sleep]}s).")
         # Place holder so a string is returned. This will execute true on remote host 
         return "true"    
@@ -261,21 +256,21 @@ module Kitchen
       end
 
       def prepare_inventory
-        hostname =  if instance_connection_option().nil?
-                       machine_name
-                    else
-                        instance_connection_option()[:hostname]
-                    end
-        debug("hostname=" + hostname)
+        if instance_connection_option.nil?
+          hostname =  machine_name
+        else
+          hostname =  instance_connection_option[:hostname]
+        end
+        debug("hostname='#{hostname}")
         # Generate hosts
-        hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option())
+        hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option)
         write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
         # Generate groups (if defined)
-        write_var_to_yaml("#{TEMP_GROUP_FILE}", conf[:groups]) if conf[:groups]
+        write_var_to_yaml(TEMP_GROUP_FILE, conf[:groups]) if conf[:groups]
       end
 
       def get_extra_vars_argument()
-        if conf[:extra_vars].kind_of?(String) and conf[:extra_vars] =~ /^@.+$/
+        if conf[:extra_vars].kind_of?(String) && conf[:extra_vars] =~ /^@.+$/
           # A JSON or YAML file is referenced (requires Ansible 1.3+)
           return conf[:extra_vars]
         else
@@ -288,9 +283,9 @@ module Kitchen
       def get_remote_user
         if conf[:remote_user]
           return conf[:remote_user]
-        elsif !instance_connection_option().nil? and instance_connection_option()[:username]
-          conf[:remote_user] = instance_connection_option()[:username]
-          return instance_connection_option()[:username]
+        elsif !instance_connection_option.nil? && instance_connection_option[:username]
+          conf[:remote_user] = instance_connection_option[:username]
+          return instance_connection_option[:username]
         else
           return false
         end
@@ -305,11 +300,10 @@ module Kitchen
           # ansible-playbook accepts "silly" arguments like '-vvvvv' as '-vvvv' for now
           return "-#{conf[:verbose]}"
         else
-        # safe default, in case input strays
+          # safe default, in case input strays
           return '-v'
         end
       end
-
     end
   end
 end
