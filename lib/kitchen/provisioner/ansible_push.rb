@@ -41,6 +41,7 @@ module Kitchen
       default_config :idempotency_test, false
       default_config :fail_non_idempotent, true
       default_config :use_instance_name, false
+      default_config :ansible_connection, "smart"
 
       # For tests disable if not needed
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
@@ -81,9 +82,9 @@ module Kitchen
             raise "ansible extra_vars is in valid type: %s value: %s" % [config[:extra_vars].class.to_s, config[:extra_vars].to_s]
           end
         end
-        
+
         info("Ansible push config validated")
-        
+
         @validated_config = config
       end
 
@@ -150,8 +151,12 @@ module Kitchen
 
       def prepare_command
         prepare_inventory if conf[:generate_inv]
-        # Place holder so a string is returned. This will execute true on remote host 
-        return "true"
+        # Place holder so a string is returned. This will execute true on remote host
+        if conf[:ansible_connection] == "winrm"
+          return "$TRUE"
+        else
+          return "true"
+        end
       end
 
       def install_command
@@ -160,7 +165,7 @@ module Kitchen
         # Test if ansible-playbook is installed and give a meaningful
         # error message
         version_check = command() + " --version"
-        stdin, stdout, stderr, wait_thr = Open3.popen3(command_env(), version_check) 
+        stdin, stdout, stderr, wait_thr = Open3.popen3(command_env(), version_check)
         exit_status = wait_thr.value
         if not exit_status.success?
           raise "%s returned a non zero '%s'" % [ version_check, exit_status ]
@@ -174,7 +179,6 @@ module Kitchen
 
         omnibus_download_dir = conf[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
         chef_url = conf[:chef_bootstrap_url]
-
         if chef_url
           scripts = []
 
@@ -242,7 +246,7 @@ module Kitchen
           if File.file?(file_path)
             task = 0
             info("idempotency test [Failed]")
-            File.open(file_path, "r") do |f| 
+            File.open(file_path, "r") do |f|
               f.each_line do |line|
                 task += 1
                 info(" #{task}> #{line.strip}")
@@ -251,7 +255,7 @@ module Kitchen
             if conf[:fail_non_idempotent]
               raise "idempotency test Failed. Number of non idempotent tasks: #{task}"
             else
-              info("Warning idempotency test [failed]")  
+              info("Warning idempotency test [failed]")
             end
           else
             info("idempotency test [passed]")
@@ -259,8 +263,12 @@ module Kitchen
         end
         info("*************** AnsiblePush end run *******************")
         debug("[#{name}] Converge completed (#{conf[:sleep]}s).")
-        # Place holder so a string is returned. This will execute true on remote host 
-        return "true"    
+        # Place holder so a string is returned. This will execute true on remote host
+        if conf[:ansible_connection] == "winrm"
+          return "$TRUE"
+        else
+          return "true"
+        end
       end
 
       protected
@@ -285,12 +293,16 @@ module Kitchen
       def prepare_inventory
         hostname =  if instance_connection_option().nil?
                        machine_name
-                    else
+                    elsif not instance_connection_option()[:hostname].nil?
                         instance_connection_option()[:hostname]
+                    elsif not instance_connection_option()[:endpoint].nil?
+                      require 'uri'
+                      urlhost = URI.parse(instance_connection_option()[:endpoint])
+                      urlhost.host
                     end
         debug("hostname=" + hostname)
         write_instance_inventory(machine_name, hostname,
-            conf[:mygroup], instance_connection_option())
+            conf[:mygroup], instance_connection_option(), conf[:ansible_connection])
       end
 
       def get_extra_vars_argument()

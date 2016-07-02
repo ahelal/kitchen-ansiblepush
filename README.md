@@ -23,7 +23,7 @@ gem build kitchen-ansiblepush.gemspec
 gem install kitchen-ansiblepush-<version>.gem
 ```
 
-## kitchen.yml Options
+## kitchen.yml Options (Linux)
 ```yaml
 provisioner         :
     ## required options
@@ -54,6 +54,17 @@ provisioner         :
     generate_inv        : true
     use_instance_name   : false  # use short (platform) instead of instance name by default
     idempotency_test    : False
+```
+## kitchen.yml Options (Windows)
+```yaml
+provisioner:
+    name                  : ansible_push #chef_zero
+    verbose               : "vvvv"
+    ansible_config        : "test/ansible.cfg"
+    idempotency_test      : 'True'
+    diff                  : 'True'
+    chef_bootstrap_url    : nil
+    ansible_connection    : "winrm"
 ```
 ## idempotency test
 If you want to check your code is idempotent you can use the idempotency_test. Essentially, this will run Ansible twice and check nothing changed in the next run. If something changed it will list the tasks. Note: If your using Ansible callback in your config this might conflict.
@@ -89,5 +100,6 @@ chef_bootstrap_url: nil
 ## TODO
 - Enable envirionment var ANSIBLE_CALLBACK_WHITELIST="changes" before call
 - Tests (PRs for tests is highligh appreciated)
+- Inegrate the chef installation for windows, currently you have to isntall it on the target server manually after conv.
 
 
