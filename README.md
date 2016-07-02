@@ -79,6 +79,13 @@ By default chef is installed and serverspec stuff. if you dont want to install
 ```yaml
 chef_bootstrap_url: nil
 ```
+
+## Real example usages
+- https://github.com/hellofresh/ansible-deployment
+- https://github.com/AutomationWithAnsible/ansible-usermanage
+- https://github.com/ahelal/ansible-concourse
+- https://github.com/danrue/ansible-variables
+
 ## TODO
 - Enable envirionment var ANSIBLE_CALLBACK_WHITELIST="changes" before call
 - Tests (PRs for tests is highligh appreciated)
