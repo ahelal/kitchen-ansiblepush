@@ -24,10 +24,3 @@ def generate_instance_inventory(name, host, mygroup, instance_connection_option)
   temp_hash["mygroup"] = mygroup if mygroup
   return { name => temp_hash }
 end
-
-def write_group_inventory(groups)
-  Dir.mkdir TEMP_INV_DIR if !File.exist?(TEMP_INV_DIR)
-  File.open(TEMP_GROUP_FILE, "w") do |file|
-    file.write groups.to_yaml
-  end
-end
