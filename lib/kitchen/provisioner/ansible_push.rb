@@ -43,9 +43,8 @@ module Kitchen
       default_config :use_instance_name, false
 
       # For tests disable if not needed
-      default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
+      default_config :chef_bootstrap_url, "https://omnitruck.chef.io/install.sh"
 
-      default_config :support_older_version, false
 
       # Validates the config and returns it.  Has side-effect of
       # possibly setting @extra_vars which doesn't seem to be used
@@ -166,11 +165,7 @@ module Kitchen
           raise "%s returned a non zero '%s'" % [ version_check, exit_status ]
         end
 
-        support_older_version = conf[:support_older_version]
-        if support_older_version
-          version_output = stdout.read()
-          version_string = version_output.split()[1]
-        end
+
 
         omnibus_download_dir = conf[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
         chef_url = conf[:chef_bootstrap_url]
@@ -194,23 +189,6 @@ module Kitchen
               echo "-----> End Installing Chef Omnibus"
             fi
           INSTALL
-
-          if (support_older_version) and (version_string.split('.').map{|s|s.to_i} <=> [1, 6, 0]) < 0
-            info("Ansible Version < 1.6.0")
-            scripts << <<-INSTALL
-              # Older versions of ansible do not set up python-apt or
-              # python-pycurl by default on Ubuntu
-              # https://github.com/ansible/ansible/issues/4079
-              # https://github.com/ansible/ansible/issues/6910
-              echo "-----> Installing python-apt, python-pycurl if needed"
-              /usr/bin/python -c "import apt, apt_pkg, pycurl" 2>&1 > /dev/null || \
-                { [ -x /usr/bin/apt-get ] && \
-                sudo /usr/bin/apt-get update && \
-                sudo /usr/bin/apt-get install python-apt python-pycurl -y -q \
-                ; }
-              echo "-----> End Installing python-apt, python-pycurl if needed"
-            INSTALL
-          end
 
           scripts << <<-INSTALL
             # Fix for https://github.com/test-kitchen/busser/issues/12
@@ -289,8 +267,12 @@ module Kitchen
                         instance_connection_option()[:hostname]
                     end
         debug("hostname=" + hostname)
-        write_instance_inventory(machine_name, hostname,
-            conf[:mygroup], instance_connection_option())
+
+        hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option())
+        write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
+  end
+
+        #write_group_inventory(groups) if conf[:groups]
       end
 
       def get_extra_vars_argument()
