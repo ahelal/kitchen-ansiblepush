@@ -7,7 +7,7 @@ bundle exec kitchen test simple
 bundle exec kitchen test notidempotent | tee /tmp/notidempotent
 
 failed_nonotidempotent=$(cat /tmp/notidempotent | grep "idempotency test \[Failed\]" | wc -l)
-if [ $failed_nonotidempotent -ne 2 ] ; then 
-    echo "Non idempotent tasks $failed_nonotidempotent. :( fauled" 
+if [ ! "${failed_nonotidempotent}" == "2" ] ; then 
+    echo "Non idempotent tasks $failed_nonotidempotent. :( failed" 
     exit 1 
 fi
