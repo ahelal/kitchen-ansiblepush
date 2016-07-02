@@ -93,6 +93,6 @@ chef_bootstrap_url: nil
 ## TODO
 - Enable envirionment var ANSIBLE_CALLBACK_WHITELIST="changes" before call
 - Tests (PRs for tests is highligh appreciated)
-- Inegrate the check installation for windows, currently you have to isntall it on the target server manually after conv.
+- Inegrate the chef installation for windows, currently you have to isntall it on the target server manually after conv.
 
 
