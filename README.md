@@ -59,7 +59,7 @@ provisioner         :
 ```yaml
 provisioner:
     name                  : ansible_push #chef_zero
-    #verbose               : "vvvv"
+    verbose               : "vvvv"
     ansible_config        : "test/ansible.cfg"
     idempotency_test      : 'True'
     diff                  : 'True'
