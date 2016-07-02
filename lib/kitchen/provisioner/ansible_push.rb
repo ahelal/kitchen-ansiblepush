@@ -270,8 +270,6 @@ module Kitchen
 
         hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option())
         write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
-  end
-
         #write_group_inventory(groups) if conf[:groups]
       end
 
