@@ -51,10 +51,10 @@ module Kitchen
         return @validated_config if defined? @validated_config
 
         raise 'No playbook defined. Please specify one in .kitchen.yml' unless config[:playbook]
-        
+
         raise "playbook '%s' could not be found. Please check path" % config[:playbook] unless File.exist?(config[:playbook])
 
-        if config[:vault_password_file] and !File.exist?(config[:vault_password_file])
+        if config[:vault_password_file] && !File.exist?(config[:vault_password_file])
           raise "Vault password '%s' could not be found. Please check path" % config[:vault_password_file]
         end
 
@@ -71,42 +71,40 @@ module Kitchen
               @extra_vars = '@' + extra_vars_path
             end
           end
-          if !extra_vars_is_valid
-            raise "ansible extra_vars is in valid type: %s value: %s" % [config[:extra_vars].class.to_s, config[:extra_vars].to_s]
-          end
+
+          raise 'ansible extra_vars is in valid type: %s value: %s' % [config[:extra_vars].class.to_s, config[:extra_vars].to_s] unless extra_vars_is_valid
         end
-        
-        info("Ansible push config validated")
-        
+        info('Ansible push config validated')
+
         @validated_config = config
       end
 
       def machine_name
         return @machine_name if defined? @machine_name
-        unless config[:use_instance_name]
-          @machine_name = instance.name.gsub(/[<>]/, '').split("-").drop(1).join("-")
-        else
+        if config[:use_instance_name]
           @machine_name = instance.name.gsub(/[<>]/, '')
+        else
+          @machine_name = instance.name.gsub(/[<>]/, '').split('-').drop(1).join('-')
         end
-        debug("machine_name=" + @machine_name.to_s)
+        debug('machine_name=' + @machine_name.to_s)
         @machine_name
       end
 
       def options
         return @options if defined? @options
         options = []
-        options << "--extra-vars='#{self.get_extra_vars_argument}'" if conf[:extra_vars]
-        options << "--sudo" if conf[:sudo]
+        options << "--extra-vars='#{get_extra_vars_argument}'" if conf[:extra_vars]
+        options << '--sudo' if conf[:sudo]
         options << "--sudo-user=#{conf[:sudo_user]}" if conf[:sudo_user]
-        options << "--user=#{conf[:remote_user]}" if self.get_remote_user
+        options << "--user=#{conf[:remote_user]}" if get_remote_user
         options << "--private-key=#{conf[:private_key]}" if conf[:private_key]
-        options << "#{self.get_verbosity_argument}" if conf[:verbose]
-        options << "--diff" if conf[:diff]
-        options << "--ask-sudo-pass" if conf[:ask_sudo_pass]
-        options << "--ask-vault-pass" if conf[:ask_vault_pass]
+        options << "#{get_verbosity_argument}" if conf[:verbose]
+        options << '--diff' if conf[:diff]
+        options << '--ask-sudo-pass' if conf[:ask_sudo_pass]
+        options << '--ask-vault-pass' if conf[:ask_vault_pass]
         options << "--vault-password-file=#{conf[:vault_password_file]}" if conf[:vault_password_file]
-        options << "--tags=%s" % self.as_list_argument(conf[:tags]) if conf[:tags]
-        options << "--skip-tags=%s" % self.as_list_argument(conf[:skip_tags]) if conf[:skip_tags]
+        options << '--tags=%s' % as_list_argument(conf[:tags]) if conf[:tags]
+        options << '--skip-tags=%s' % as_list_argument(conf[:skip_tags]) if conf[:skip_tags]
         options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
         options << "--inventory-file=#{conf[:generate_inv_path]}" if conf[:generate_inv]
         ##options << "--inventory-file=#{ssh_inv}," if ssh_inv
@@ -118,7 +116,7 @@ module Kitchen
           options << "--limit=#{machine_name}"
         end
 
-        #Add raw argument as final thing
+        # Add raw argument as final thing
         options << conf[:raw_arguments] if conf[:raw_arguments]
         @options = options
       end
@@ -126,7 +124,7 @@ module Kitchen
       def command
         return @command if defined? @command
         @command = [conf[:ansible_playbook_bin]]
-        @command =  (@command << options() << conf[:playbook]).flatten.join(" ")
+        @command =  (@command << options << conf[:playbook]).flatten.join(' ')
         debug("Ansible push command= %s" % @command)
         @command
       end
@@ -134,8 +132,8 @@ module Kitchen
       def command_env
         return @command_env if defined? @command_env
         @command_env = {
-          "PYTHONUNBUFFERED" => "1", # Ensure Ansible output isn't buffered
-          "ANSIBLE_FORCE_COLOR" => "true",
+          "PYTHONUNBUFFERED" => '1', # Ensure Ansible output isn't buffered
+          "ANSIBLE_FORCE_COLOR" => 'true',
           "ANSIBLE_HOST_KEY_CHECKING" => "#{conf[:host_key_checking]}",
         }
         @command_env["ANSIBLE_CONFIG"]=conf[:ansible_config] if conf[:ansible_config]
@@ -144,8 +142,8 @@ module Kitchen
 
       def prepare_command
         prepare_inventory if conf[:generate_inv]
-        # Place holder so a string is returned. This will execute true on remote host 
-        return "true"
+        # Place holder so a string is returned. This will execute true on remote host
+        "true"
       end
 
       def install_command
@@ -153,16 +151,16 @@ module Kitchen
         info("*************** AnsiblePush install_command ***************")
         # Test if ansible-playbook is installed and give a meaningful
         # error message
-        version_check = command() + " --version"
-        stdin, stdout, stderr, wait_thr = Open3.popen3(command_env(), version_check) 
+        version_check = command + " --version"
+        stdin, stdout, stderr, wait_thr = Open3.popen3(command_env, version_check)
         exit_status = wait_thr.value
         if not exit_status.success?
-          raise "%s returned a non zero '%s'" % [ version_check, exit_status ]
+          raise "%s returned a non zero '%s'" % [version_check, exit_status]
         end
 
 
 
-        omnibus_download_dir = conf[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
+        omnibus_download_dir = conf[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
         chef_url = conf[:chef_bootstrap_url]
 
         if chef_url
@@ -202,20 +200,19 @@ module Kitchen
 
       def run_command
         info('*************** AnsiblePush run ***************')
-        exec_ansible_command(command_env(), command(), 'ansible-playbook')
+        exec_ansible_command(command_env, command, 'ansible-playbook')
         # idempotency test
         if conf[:idempotency_test]
           info('*************** idempotency test ***************')
           file_path = "/tmp/kitchen_ansible_callback/#{SecureRandom.uuid}.changes"
-          exec_ansible_command(command_env().merge({
+          exec_ansible_command(command_env.merge({
              'ANSIBLE_CALLBACK_PLUGINS' => "#{File.dirname(__FILE__)}/../../../callback/",
-             'PLUGIN_CHANGES_FILE' => file_path,
-            }), command(), "ansible-playbook")
+             'PLUGIN_CHANGES_FILE' => file_path}), command, "ansible-playbook")
           # Check ansible callback if changes has occured in the second run
           if File.file?(file_path)
             task = 0
-            info("idempotency test [Failed]")
-            File.open(file_path, "r") do |f| 
+            info('idempotency test [Failed]')
+            File.open(file_path, 'r') do |f|
               f.each_line do |line|
                 task += 1
                 info(" #{task}> #{line.strip}")
@@ -224,7 +221,7 @@ module Kitchen
             if conf[:fail_non_idempotent]
               raise "idempotency test Failed. Number of non idempotent tasks: #{task}"
             else
-              info('Warning idempotency test [failed]')  
+              info('Warning idempotency test [failed]')
             end
           else
             info('idempotency test [passed]')
@@ -232,26 +229,26 @@ module Kitchen
         end
         info('*************** AnsiblePush end run *******************')
         debug("[#{name}] Converge completed (#{conf[:sleep]}s).")
-        # Place holder so a string is returned. This will execute true on remote host 
-        return "true"    
+        # Place holder so a string is returned. This will execute true on remote host
+        "true"
       end
 
       protected
 
       def exec_ansible_command(env, command, desc)
-        debug("env=%s command=%s" % [env, command] )
+        debug('env=%s command=%s' % [env, command])
         system(env, "#{command}")
         exit_code = $?.exitstatus
         debug("ansible-playbook exit code = #{exit_code}")
         if exit_code.to_i != 0
-          raise "%s returned a non zero '%s'. Please see the output above." % [ desc, exit_code.to_s ]
+          raise '%s returned a non zero \'%s\'. Please see the output above.' % [desc, exit_code.to_s]
         end
       end
 
       def instance_connection_option
         return @instance_connection_option if defined? @instance_connection_option
         @instance_connection_option = instance.transport.instance_variable_get(:@connection_options)
-        debug("instance_connection_option=" + @instance_connection_option.to_s)
+        debug('instance_connection_option=' + @instance_connection_option.to_s)
         @instance_connection_option
       end
 
@@ -269,13 +266,13 @@ module Kitchen
         write_var_to_yaml(TEMP_GROUP_FILE, conf[:groups]) if conf[:groups]
       end
 
-      def get_extra_vars_argument()
+      def get_extra_vars_argument
         if conf[:extra_vars].kind_of?(String) && conf[:extra_vars] =~ /^@.+$/
           # A JSON or YAML file is referenced (requires Ansible 1.3+)
           return conf[:extra_vars]
         else
-        # Expected to be a Hash after config validation. (extra_vars as
-        # JSON requires Ansible 1.2+, while YAML requires Ansible 1.3+)
+          # Expected to be a Hash after config validation. (extra_vars as
+          # JSON requires Ansible 1.2+, while YAML requires Ansible 1.3+)
           return conf[:extra_vars].to_json
         end
       end
