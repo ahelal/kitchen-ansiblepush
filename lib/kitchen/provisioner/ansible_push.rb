@@ -107,7 +107,6 @@ module Kitchen
         options << '--skip-tags=%s' % as_list_argument(conf[:skip_tags]) if conf[:skip_tags]
         options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
         options << "--inventory-file=#{conf[:generate_inv_path]}" if conf[:generate_inv]
-        ##options << "--inventory-file=#{ssh_inv}," if ssh_inv
 
         # By default we limit by the current machine,
         if conf[:limit]
@@ -132,33 +131,30 @@ module Kitchen
       def command_env
         return @command_env if defined? @command_env
         @command_env = {
-          "PYTHONUNBUFFERED" => '1', # Ensure Ansible output isn't buffered
-          "ANSIBLE_FORCE_COLOR" => 'true',
-          "ANSIBLE_HOST_KEY_CHECKING" => "#{conf[:host_key_checking]}",
+          'PYTHONUNBUFFERED' => '1', # Ensure Ansible output isn't buffered
+          'ANSIBLE_FORCE_COLOR' => 'true',
+          'ANSIBLE_HOST_KEY_CHECKING' => "#{conf[:host_key_checking]}"
         }
-        @command_env["ANSIBLE_CONFIG"]=conf[:ansible_config] if conf[:ansible_config]
+        @command_env['ANSIBLE_CONFIG'] = conf[:ansible_config] if conf[:ansible_config]
         @command_env
       end
 
       def prepare_command
         prepare_inventory if conf[:generate_inv]
         # Place holder so a string is returned. This will execute true on remote host
-        "true"
+        'true'
       end
 
       def install_command
         # Must install chef for busser and serverspec to work :(
-        info("*************** AnsiblePush install_command ***************")
+        info('*************** AnsiblePush install_command ***************')
         # Test if ansible-playbook is installed and give a meaningful
         # error message
-        version_check = command + " --version"
+        version_check = command + ' --version'
         stdin, stdout, stderr, wait_thr = Open3.popen3(command_env, version_check)
         exit_status = wait_thr.value
-        if not exit_status.success?
-          raise "%s returned a non zero '%s'" % [version_check, exit_status]
-        end
 
-
+        raise "%s returned a non zero '%s'" % [version_check, exit_status] unless exit_status.success
 
         omnibus_download_dir = conf[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
         chef_url = conf[:chef_bootstrap_url]
@@ -207,7 +203,7 @@ module Kitchen
           file_path = "/tmp/kitchen_ansible_callback/#{SecureRandom.uuid}.changes"
           exec_ansible_command(command_env.merge({
              'ANSIBLE_CALLBACK_PLUGINS' => "#{File.dirname(__FILE__)}/../../../callback/",
-             'PLUGIN_CHANGES_FILE' => file_path}), command, "ansible-playbook")
+             'PLUGIN_CHANGES_FILE' => file_path}), command, 'ansible-playbook')
           # Check ansible callback if changes has occured in the second run
           if File.file?(file_path)
             task = 0
@@ -230,7 +226,7 @@ module Kitchen
         info('*************** AnsiblePush end run *******************')
         debug("[#{name}] Converge completed (#{conf[:sleep]}s).")
         # Place holder so a string is returned. This will execute true on remote host
-        "true"
+        'true'
       end
 
       protected
