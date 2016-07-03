@@ -41,6 +41,7 @@ module Kitchen
       default_config :idempotency_test, false
       default_config :fail_non_idempotent, true
       default_config :use_instance_name, false
+      default_config :ansible_connection, "smart"
 
       # For tests disable if not needed
       default_config :chef_bootstrap_url, 'https://omnitruck.chef.io/install.sh'
@@ -74,7 +75,6 @@ module Kitchen
           raise 'ansible extra_vars is in valid type: %s value: %s' % [config[:extra_vars].class.to_s, config[:extra_vars].to_s] unless extra_vars_is_valid
         end
         info('Ansible push config validated')
-
         @validated_config = config
       end
 
@@ -141,8 +141,17 @@ module Kitchen
       def prepare_command
         prepare_inventory if conf[:generate_inv]
         # Place holder so a string is returned. This will execute true on remote host
-        'true'
+        true_command
       end
+
+     def true_command
+       # Place holder so a string is returned. This will execute true on remote host
+       if conf[:ansible_connection] == "winrm"
+          '$TRUE'
+       else
+          'true'
+       end
+     end
 
       def install_command
         # Must install chef for busser and serverspec to work :(
@@ -160,13 +169,15 @@ module Kitchen
       end
 
       def chef_installation(chef_url, omnibus_download_dir, transport)
-        if chef_url
+        if chef_url && chef_url != 'nil' # ignore string nil
           scripts = []
           scripts << Util.shell_helpers
           scripts << chef_installation_script(chef_url, omnibus_download_dir, transport)
           <<-INSTALL
             sh -c '#{scripts.join("\n")}'
           INSTALL
+        else
+          true_command
         end
       end
 
@@ -205,7 +216,7 @@ module Kitchen
         info('*************** AnsiblePush end run *******************')
         debug("[#{name}] Converge completed (#{conf[:sleep]}s).")
         # Place holder so a string is returned. This will execute true on remote host
-        'true'
+        true_command
       end
 
       protected
@@ -230,12 +241,16 @@ module Kitchen
       def prepare_inventory
         if instance_connection_option.nil?
           hostname =  machine_name
-        else
-          hostname =  instance_connection_option[:hostname]
+        elsif not instance_connection_option()[:hostname].nil?
+            instance_connection_option()[:hostname]
+        elsif not instance_connection_option()[:endpoint].nil?
+          require 'uri'
+          urlhost = URI.parse(instance_connection_option()[:endpoint])
+          hostname = urlhost.host
         end
         debug("hostname='#{hostname}")
         # Generate hosts
-        hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option)
+        hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf[:ansible_connection])
         write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
         # Generate groups (if defined)
         write_var_to_yaml(TEMP_GROUP_FILE, conf[:groups]) if conf[:groups]
