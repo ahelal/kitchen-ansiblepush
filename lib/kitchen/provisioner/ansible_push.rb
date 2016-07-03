@@ -8,7 +8,7 @@ require 'securerandom'
 module Kitchen
   class Busser
     def non_suite_dirs
-      %w{data}
+      %w({data})
     end
   end
 
@@ -51,10 +51,10 @@ module Kitchen
 
         raise 'No playbook defined. Please specify one in .kitchen.yml' unless config[:playbook]
 
-        raise "playbook '%s' could not be found. Please check path" % config[:playbook] unless File.exist?(config[:playbook])
+        raise "playbook '#{config[:playbook]}' could not be found. Please check path" unless File.exist?(config[:playbook])
 
         if config[:vault_password_file] && !File.exist?(config[:vault_password_file])
-          raise "Vault password '%s' could not be found. Please check path" % config[:vault_password_file]
+          raise "Vault password '#{config[:vault_password_file]}' could not be found. Please check path"
         end
 
         # Validate that extra_vars is either a hash, or a path to an existing file
