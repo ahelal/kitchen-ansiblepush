@@ -8,23 +8,23 @@ A test-kitchen plugin that adds the support for ansible in push mode
 ## Intro
 This kitchen plugin adds ansible as a provisioner in push mode. Ansible will run from your host rather than run from guest machines.  
 
-## How to install 
+## How to install
 
 ### Ruby gem
 ```
 gem install kitchen-ansiblepush
 ```
 
-### To install from code 
-``` 
+### To install from code
+```
 git clone git@github.com:ahelal/kitchen-ansiblepush.git
 cd kitchen-ansiblepush
 gem build kitchen-ansiblepush.gemspec
 gem install kitchen-ansiblepush-<version>.gem
 ```
 
-### Use Bundler 
-My prefered method is use Gemfile 
+### Use Bundler
+My prefered method is use Gemfile
 
 ```ruby
 source "https://rubygems.org"
@@ -53,7 +53,7 @@ provisioner         :
     skip_tags           : [ "notme", "orme" ]
     start_at_task       : [ "five" ]
     # Hash of other groups
-    groups              : 
+    groups              :
          db             :
             - db01
     sudo                : true
@@ -87,11 +87,25 @@ You can use venv and install multi version of ansible or if you prefer you can u
 For further example you can check a matrix test [ansible-usermanage](https://github.com/AutomationWithAnsible/ansible-usermanage/blob/master/.kitchen.yml)
 
 ## Disable chef installation
-By default chef is installed and serverspec stuff. if you dont want to install 
+By default chef is installed and serverspec stuff. if you dont want to install
 ```yaml
 chef_bootstrap_url: nil
 ```
 
+## Windows support
+Kitchen ansiblepush has experimantal support.
+to enable windows support you need to add the following to your .kitchen.yml
+```yaml
+...
+transport:
+     name: winrm
+     winrm_transport: negotiate
+provisioner:
+    name                  : ansible_push
+    chef_bootstrap_url    : nil
+    ansible_connection    : "winrm"
+...
+```
 ## Pattern of usage
 You can use ansible push  with different pattern. I will list some of the ways that I use it, But by no means they are the only patterns.
 ### Roles
@@ -131,5 +145,3 @@ tests
 ## TODO
 - Enable envirionment var ANSIBLE_CALLBACK_WHITELIST="changes" before call
 - Tests (PRs for tests is highligh appreciated)
-
-
