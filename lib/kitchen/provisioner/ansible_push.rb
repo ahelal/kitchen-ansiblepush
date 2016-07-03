@@ -169,7 +169,7 @@ module Kitchen
       end
 
       def chef_installation(chef_url, omnibus_download_dir, transport)
-        if chef_url
+        if chef_url && chef_url != 'nil' # ignore string nil
           scripts = []
           scripts << Util.shell_helpers
           scripts << chef_installation_script(chef_url, omnibus_download_dir, transport)
@@ -246,11 +246,11 @@ module Kitchen
         elsif not instance_connection_option()[:endpoint].nil?
           require 'uri'
           urlhost = URI.parse(instance_connection_option()[:endpoint])
-          urlhost.host
+          hostname = urlhost.host
         end
         debug("hostname='#{hostname}")
         # Generate hosts
-        hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option)
+        hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf[:ansible_connection])
         write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
         # Generate groups (if defined)
         write_var_to_yaml(TEMP_GROUP_FILE, conf[:groups]) if conf[:groups]
