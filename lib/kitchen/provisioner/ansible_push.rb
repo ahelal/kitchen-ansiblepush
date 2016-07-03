@@ -141,12 +141,17 @@ module Kitchen
       def prepare_command
         prepare_inventory if conf[:generate_inv]
         # Place holder so a string is returned. This will execute true on remote host
-        if conf[:ansible_connection] == "winrm"
-          return '$TRUE'
-        else
-           'true'
-        end
+        true_command
       end
+
+     def true_command
+       # Place holder so a string is returned. This will execute true on remote host
+       if conf[:ansible_connection] == "winrm"
+          '$TRUE'
+       else
+          'true'
+       end
+     end
 
       def install_command
         # Must install chef for busser and serverspec to work :(
@@ -171,6 +176,8 @@ module Kitchen
           <<-INSTALL
             sh -c '#{scripts.join("\n")}'
           INSTALL
+        else
+          true_command
         end
       end
 
@@ -209,11 +216,7 @@ module Kitchen
         info('*************** AnsiblePush end run *******************')
         debug("[#{name}] Converge completed (#{conf[:sleep]}s).")
         # Place holder so a string is returned. This will execute true on remote host
-        if conf[:ansible_connection] == "winrm"
-          '$TRUE'
-        else
-          'true'
-        end
+        true_command
       end
 
       protected
