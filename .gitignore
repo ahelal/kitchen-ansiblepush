@@ -42,5 +42,7 @@ Gemfile.lock
 bundler_gems
 *.pyc
 
+# coverage
+coverage
 #
 bin/*
