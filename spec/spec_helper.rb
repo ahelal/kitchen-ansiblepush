@@ -7,6 +7,8 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'pry'
 require 'rspec'
 
+require 'simplecov'
+SimpleCov.start
 
 RSpec.configure do |config|
   config.tty = true
