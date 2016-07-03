@@ -1,7 +1,7 @@
 require 'open3'
 require 'kitchen'
 require 'kitchen/provisioner/base'
-require 'kitchen-ansible/util-inventory.rb'
+require 'kitchen-ansible/util_inventory.rb'
 require 'json'
 require 'securerandom'
 
@@ -44,7 +44,6 @@ module Kitchen
       # For tests disable if not needed
       default_config :chef_bootstrap_url, 'https://omnitruck.chef.io/install.sh'
 
-
       # Validates the config and returns it.  Has side-effect of
       # possibly setting @extra_vars which doesn't seem to be used
       def conf
@@ -67,9 +66,8 @@ module Kitchen
             extra_vars_path = match_data[1].to_s
             expanded_path = Pathname.new(extra_vars_path).expand_path(Dir.pwd)
             extra_vars_is_valid = expanded_path.exist?
-            if extra_vars_is_valid
-              @extra_vars = '@' + extra_vars_path
-            end
+
+            @extra_vars = '@' + extra_vars_path if extra_vars_is_valid
           end
 
           raise 'ansible extra_vars is in valid type: %s value: %s' % [config[:extra_vars].class.to_s, config[:extra_vars].to_s] unless extra_vars_is_valid
@@ -93,12 +91,12 @@ module Kitchen
       def options
         return @options if defined? @options
         options = []
-        options << "--extra-vars='#{get_extra_vars_argument}'" if conf[:extra_vars]
+        options << "--extra-vars='#{extra_vars_argument}'" if conf[:extra_vars]
         options << '--sudo' if conf[:sudo]
         options << "--sudo-user=#{conf[:sudo_user]}" if conf[:sudo_user]
-        options << "--user=#{conf[:remote_user]}" if get_remote_user
+        options << "--user=#{conf[:remote_user]}" if remote_user
         options << "--private-key=#{conf[:private_key]}" if conf[:private_key]
-        options << "#{get_verbosity_argument}" if conf[:verbose]
+        options << verbosity_argument.to_s if conf[:verbose]
         options << '--diff' if conf[:diff]
         options << '--ask-sudo-pass' if conf[:ask_sudo_pass]
         options << '--ask-vault-pass' if conf[:ask_vault_pass]
@@ -123,8 +121,8 @@ module Kitchen
       def command
         return @command if defined? @command
         @command = [conf[:ansible_playbook_bin]]
-        @command =  (@command << options << conf[:playbook]).flatten.join(' ')
-        debug("Ansible push command= %s" % @command)
+        @command = (@command << options << conf[:playbook]).flatten.join(' ')
+        debug('Ansible push command= %s' % @command)
         @command
       end
 
@@ -133,7 +131,7 @@ module Kitchen
         @command_env = {
           'PYTHONUNBUFFERED' => '1', # Ensure Ansible output isn't buffered
           'ANSIBLE_FORCE_COLOR' => 'true',
-          'ANSIBLE_HOST_KEY_CHECKING' => "#{conf[:host_key_checking]}"
+          'ANSIBLE_HOST_KEY_CHECKING' => conf[:host_key_checking].to_s
         }
         @command_env['ANSIBLE_CONFIG'] = conf[:ansible_config] if conf[:ansible_config]
         @command_env
@@ -154,11 +152,13 @@ module Kitchen
         stdin, stdout, stderr, wait_thr = Open3.popen3(command_env, version_check)
         exit_status = wait_thr.value
 
-        raise "%s returned a non zero '%s'" % [version_check, exit_status] unless exit_status.success
+        raise "%s returned a non zero '%s'" % [version_check, exit_status] unless exit_status.success?
 
         omnibus_download_dir = conf[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
-        chef_url = conf[:chef_bootstrap_url]
+        chef_installation(conf[:chef_bootstrap_url], omnibus_download_dir, nil)
+      end
 
+      def chef_installation(chef_url, omnibus_download_dir, transport)
         if chef_url
           scripts = []
 
@@ -173,7 +173,6 @@ module Kitchen
               then
                 do_download #{chef_url} #{omnibus_download_dir}/install.sh
               fi
-
               sudo sh #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
               echo "-----> End Installing Chef Omnibus"
             fi
@@ -201,9 +200,12 @@ module Kitchen
         if conf[:idempotency_test]
           info('*************** idempotency test ***************')
           file_path = "/tmp/kitchen_ansible_callback/#{SecureRandom.uuid}.changes"
-          exec_ansible_command(command_env.merge({
-             'ANSIBLE_CALLBACK_PLUGINS' => "#{File.dirname(__FILE__)}/../../../callback/",
-             'PLUGIN_CHANGES_FILE' => file_path}), command, 'ansible-playbook')
+          exec_ansible_command(
+            command_env.merge(
+              'ANSIBLE_CALLBACK_PLUGINS' => "#{File.dirname(__FILE__)}/../../../callback/",
+              'PLUGIN_CHANGES_FILE'      => file_path
+            ), command, 'ansible-playbook'
+          )
           # Check ansible callback if changes has occured in the second run
           if File.file?(file_path)
             task = 0
@@ -233,7 +235,7 @@ module Kitchen
 
       def exec_ansible_command(env, command, desc)
         debug('env=%s command=%s' % [env, command])
-        system(env, "#{command}")
+        system(env, command.to_s)
         exit_code = $?.exitstatus
         debug("ansible-playbook exit code = #{exit_code}")
         if exit_code.to_i != 0
@@ -262,25 +264,25 @@ module Kitchen
         write_var_to_yaml(TEMP_GROUP_FILE, conf[:groups]) if conf[:groups]
       end
 
-      def get_extra_vars_argument
+      def extra_vars_argument
         if conf[:extra_vars].kind_of?(String) && conf[:extra_vars] =~ /^@.+$/
           # A JSON or YAML file is referenced (requires Ansible 1.3+)
-          return conf[:extra_vars]
+          conf[:extra_vars]
         else
           # Expected to be a Hash after config validation. (extra_vars as
           # JSON requires Ansible 1.2+, while YAML requires Ansible 1.3+)
-          return conf[:extra_vars].to_json
+          conf[:extra_vars].to_json
         end
       end
 
-      def get_remote_user
+      def remote_user
         if conf[:remote_user]
-          return conf[:remote_user]
+          conf[:remote_user]
         elsif !instance_connection_option.nil? && instance_connection_option[:username]
           conf[:remote_user] = instance_connection_option[:username]
-          return instance_connection_option[:username]
+          instance_connection_option[:username]
         else
-          return false
+          false
         end
       end
 
@@ -288,13 +290,13 @@ module Kitchen
         v.kind_of?(Array) ? v.join(',') : v
       end
 
-      def get_verbosity_argument
+      def verbosity_argument
         if conf[:verbose].to_s =~ /^v+$/
           # ansible-playbook accepts "silly" arguments like '-vvvvv' as '-vvvv' for now
-          return "-#{conf[:verbose]}"
+          "-#{conf[:verbose]}"
         else
           # safe default, in case input strays
-          return '-v'
+          '-v'
         end
       end
     end

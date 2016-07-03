@@ -1,6 +1,6 @@
 
-TEMP_INV_DIR = '.kitchen/ansiblepush'
-TEMP_GROUP_FILE = "#{TEMP_INV_DIR}/ansiblepush_groups_inventory.yml"
+TEMP_INV_DIR = '.kitchen/ansiblepush'.freeze
+TEMP_GROUP_FILE = "#{TEMP_INV_DIR}/ansiblepush_groups_inventory.yml".freeze
 
 def write_var_to_yaml(yaml_file, hash_var)
   Dir.mkdir TEMP_INV_DIR unless File.exist?(TEMP_INV_DIR)
