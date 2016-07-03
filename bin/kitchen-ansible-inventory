@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'yaml'
 require 'json'
-require 'kitchen-ansible/util-inventory.rb'
+require 'kitchen-ansible/util_inventory.rb'
 
 all =  []
 groups =  Hash.new
