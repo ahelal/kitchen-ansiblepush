@@ -41,6 +41,7 @@ module Kitchen
       default_config :idempotency_test, false
       default_config :fail_non_idempotent, true
       default_config :use_instance_name, false
+      default_config :ansible_connection, "smart"
 
       # For tests disable if not needed
       default_config :chef_bootstrap_url, 'https://omnitruck.chef.io/install.sh'
@@ -74,7 +75,6 @@ module Kitchen
           raise 'ansible extra_vars is in valid type: %s value: %s' % [config[:extra_vars].class.to_s, config[:extra_vars].to_s] unless extra_vars_is_valid
         end
         info('Ansible push config validated')
-
         @validated_config = config
       end
 
@@ -141,7 +141,11 @@ module Kitchen
       def prepare_command
         prepare_inventory if conf[:generate_inv]
         # Place holder so a string is returned. This will execute true on remote host
-        'true'
+        if conf[:ansible_connection] == "winrm"
+          return '$TRUE'
+        else
+           'true'
+        end
       end
 
       def install_command
@@ -205,7 +209,11 @@ module Kitchen
         info('*************** AnsiblePush end run *******************')
         debug("[#{name}] Converge completed (#{conf[:sleep]}s).")
         # Place holder so a string is returned. This will execute true on remote host
-        'true'
+        if conf[:ansible_connection] == "winrm"
+          '$TRUE'
+        else
+          'true'
+        end
       end
 
       protected
@@ -230,8 +238,12 @@ module Kitchen
       def prepare_inventory
         if instance_connection_option.nil?
           hostname =  machine_name
-        else
-          hostname =  instance_connection_option[:hostname]
+        elsif not instance_connection_option()[:hostname].nil?
+            instance_connection_option()[:hostname]
+        elsif not instance_connection_option()[:endpoint].nil?
+          require 'uri'
+          urlhost = URI.parse(instance_connection_option()[:endpoint])
+          urlhost.host
         end
         debug("hostname='#{hostname}")
         # Generate hosts
