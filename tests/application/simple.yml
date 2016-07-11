@@ -9,3 +9,7 @@
       copy:
         content="{{ inventory_hostname }}"
         dest="/var/{{ inventory_hostname }}-test.txt"
+
+    - name: Print
+      debug:
+        msg="{{ inventory_hostname }}"
