@@ -24,13 +24,13 @@ provisioner:
 
 platforms:
     - name                  : "<%= name %>_V1"
-      provisioner           : 
-        ansible_playbook_bin: "`ansible-version path v1`ansible-playbook"
+      provisioner           :
+        ansible_playbook_bin: "ansible-playbook"
 
     - name                  : "<%= name %>_V2"
       provisioner           :
-        ansible_playbook_bin: "`ansible-version path v2`ansible-playbook"
-
+        ansible_playbook_bin: "ansible-playbook"
+        inventory_hostname  :  xxx
 suites:
   - name                    : simple
     provisioner             :

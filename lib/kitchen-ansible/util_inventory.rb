@@ -23,10 +23,11 @@ def generate_instance_inventory(name, host, mygroup, instance_connection_option,
   temp_hash['ansible_ssh_user'] = user if user
   temp_hash['ansible_ssh_pass'] = pass if pass
   temp_hash['mygroup'] = mygroup if mygroup
-  # Windows issue ignore SSL
+
   if ansible_connection == 'winrm'
     temp_hash['ansible_winrm_server_cert_validation'] = 'ignore'
     temp_hash['ansible_winrm_transport'] = 'ssl'
   end
+  debug("Generate_instance_inventory #{temp_hash}")
   { name => temp_hash }
 end

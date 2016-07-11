@@ -41,7 +41,8 @@ module Kitchen
       default_config :idempotency_test, false
       default_config :fail_non_idempotent, true
       default_config :use_instance_name, false
-      default_config :ansible_connection, "smart"
+      default_config :inventory_hostname, nil
+      default_config :ansible_connection, 'smart'
 
       # For tests disable if not needed
       default_config :chef_bootstrap_url, 'https://omnitruck.chef.io/install.sh'
@@ -61,8 +62,8 @@ module Kitchen
 
         # Validate that extra_vars is either a hash, or a path to an existing file
         if config[:extra_vars]
-          extra_vars_is_valid = config[:extra_vars].kind_of?(Hash) || config[:extra_vars].kind_of?(String)
-          if config[:extra_vars].kind_of?(String)
+          extra_vars_is_valid = config[:extra_vars].is_a?(Hash) || config[:extra_vars].is_a?(String)
+          if config[:extra_vars].is_a?(String)
             # Accept the usage of '@' (e.g. '@vars.yml' and 'vars.yml' are both supported)
             match_data = /^@?(.+)$/.match(config[:extra_vars])
             extra_vars_path = match_data[1].to_s
@@ -72,7 +73,7 @@ module Kitchen
             @extra_vars = '@' + extra_vars_path if extra_vars_is_valid
           end
 
-          raise 'ansible extra_vars is in valid type: %s value: %s' % [config[:extra_vars].class.to_s, config[:extra_vars].to_s] unless extra_vars_is_valid
+          raise format('ansible extra_vars is in valid type: %s value: %s', config[:extra_vars].class.to_s, config[:extra_vars].to_s) unless extra_vars_is_valid
         end
         info('Ansible push config validated')
         @validated_config = config
@@ -80,12 +81,14 @@ module Kitchen
 
       def machine_name
         return @machine_name if defined? @machine_name
-        if config[:use_instance_name]
-          @machine_name = instance.name.gsub(/[<>]/, '')
-        else
-          @machine_name = instance.name.gsub(/[<>]/, '').split('-').drop(1).join('-')
-        end
-        debug('machine_name=' + @machine_name.to_s)
+
+        @machine_name = if config[:inventory_hostname]
+                          config[:inventory_hostname]
+                        elsif config[:use_instance_name]
+                          instance.name.gsub(/[<>]/, '')
+                        else
+                          instance.name.gsub(/[<>]/, '').split('-').drop(1).join('-')
+                        end
         @machine_name
       end
 
@@ -106,15 +109,13 @@ module Kitchen
         options << '--skip-tags=%s' % as_list_argument(conf[:skip_tags]) if conf[:skip_tags]
         options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
         options << "--inventory-file=#{conf[:generate_inv_path]}" if conf[:generate_inv]
-
         # By default we limit by the current machine,
-        if conf[:limit]
-          options << "--limit=#{as_list_argument(conf[:limit])}"
-        else
-          options << "--limit=#{machine_name}"
-        end
-
-        # Add raw argument as final thing
+        options << if conf[:limit]
+                     "--limit=#{as_list_argument(conf[:limit])}"
+                   else
+                     "--limit=#{machine_name}"
+                   end
+        # Add raw agument as final thing
         options << conf[:raw_arguments] if conf[:raw_arguments]
         @options = options
       end
@@ -123,7 +124,7 @@ module Kitchen
         return @command if defined? @command
         @command = [conf[:ansible_playbook_bin]]
         @command = (@command << options << conf[:playbook]).flatten.join(' ')
-        debug('Ansible push command= %s' % @command)
+        debug(format('Ansible push command= %s', @command))
         @command
       end
 
@@ -144,25 +145,23 @@ module Kitchen
         true_command
       end
 
-     def true_command
-       # Place holder so a string is returned. This will execute true on remote host
-       if conf[:ansible_connection] == "winrm"
+      def true_command
+        # Place holder so a string is returned. This will execute true on remote host
+        if conf[:ansible_connection] == "winrm"
           '$TRUE'
-       else
+        else
           'true'
-       end
-     end
+        end
+      end
 
       def install_command
-        # Must install chef for busser and serverspec to work :(
         info('*************** AnsiblePush install_command ***************')
-        # Test if ansible-playbook is installed and give a meaningful
-        # error message
+        # Test if ansible-playbook is installed and give a meaningful error message
         version_check = command + ' --version'
-        stdin, stdout, stderr, wait_thr = Open3.popen3(command_env, version_check)
+        _stdin, _stdout, _stderr, wait_thr = Open3.popen3(command_env, version_check)
         exit_status = wait_thr.value
 
-        raise "%s returned a non zero '%s'" % [version_check, exit_status] unless exit_status.success?
+        raise format('%s returned a non zero "%s"', version_check, exit_status) unless exit_status.success?
 
         omnibus_download_dir = conf[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
         chef_installation(conf[:chef_bootstrap_url], omnibus_download_dir, nil)
@@ -222,33 +221,38 @@ module Kitchen
       protected
 
       def exec_ansible_command(env, command, desc)
-        debug('env=%s command=%s' % [env, command])
+        debug(format('env=%s command=%s', env, command))
         system(env, command.to_s)
         exit_code = $?.exitstatus
         debug("ansible-playbook exit code = #{exit_code}")
         if exit_code.to_i != 0
-          raise '%s returned a non zero \'%s\'. Please see the output above.' % [desc, exit_code.to_s]
+          raise format('%s returned a non zero \'%s\'. Please see the output above.', desc, exit_code.to_s)
         end
       end
 
       def instance_connection_option
         return @instance_connection_option if defined? @instance_connection_option
         @instance_connection_option = instance.transport.instance_variable_get(:@connection_options)
-        debug('instance_connection_option=' + @instance_connection_option.to_s)
+        debug("instance_connection_option = #{@instance_connection_option}")
         @instance_connection_option
       end
 
-      def prepare_inventory
+      def generate_hostname
         if instance_connection_option.nil?
-          hostname =  machine_name
-        elsif not instance_connection_option()[:hostname].nil?
-            instance_connection_option()[:hostname]
-        elsif not instance_connection_option()[:endpoint].nil?
+          machine_name
+        elsif !instance_connection_option[:hostname].nil?
+          instance_connection_option[:hostname]
+        elsif !instance_connection_option[:endpoint].nil?
           require 'uri'
-          urlhost = URI.parse(instance_connection_option()[:endpoint])
-          hostname = urlhost.host
+          urlhost = URI.parse(instance_connection_option[:endpoint])
+          urlhost.host
         end
-        debug("hostname='#{hostname}")
+      end
+
+      def prepare_inventory
+        debug("machine name=#{machine_name}")
+        hostname = generate_hostname
+        debug("hostname='#{hostname}'")
         # Generate hosts
         hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf[:ansible_connection])
         write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
@@ -257,7 +261,7 @@ module Kitchen
       end
 
       def extra_vars_argument
-        if conf[:extra_vars].kind_of?(String) && conf[:extra_vars] =~ /^@.+$/
+        if conf[:extra_vars].is_a?(String) && conf[:extra_vars] =~ /^@.+$/
           # A JSON or YAML file is referenced (requires Ansible 1.3+)
           conf[:extra_vars]
         else
@@ -279,7 +283,7 @@ module Kitchen
       end
 
       def as_list_argument(v)
-        v.kind_of?(Array) ? v.join(',') : v
+        v.is_a?(Array) ? v.join(',') : v
       end
 
       def verbosity_argument
