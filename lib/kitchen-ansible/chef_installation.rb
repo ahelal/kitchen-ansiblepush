@@ -23,5 +23,9 @@ def chef_installation_script_windows(chef_url)
       . { iwr -useb #{chef_url} } | iex; install -channel current -project chef
       echo "-----> End Installing Chef Omnibus"
     }
+    else
+    {
+      echo "-----> Chef Omnibus needed by busser and serverspec is already installed"
+    }
     INSTALL
 end
