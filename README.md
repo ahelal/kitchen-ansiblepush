@@ -106,6 +106,20 @@ provisioner:
     ansible_connection    : "winrm"
 ...
 ```
+### Install chef for Windows
+If you want to use severspec on windows you might need to install chef
+
+```yaml
+...
+transport:
+     name: winrm
+     winrm_transport: negotiate
+provisioner:
+    name                  : ansible_push
+    chef_bootstrap_url    : 'https://omnitruck.chef.io/install.ps1'
+    ansible_connection    : 'winrm'
+...
+```
 ## Pattern of usage
 You can use ansible push  with different pattern. I will list some of the ways that I use it, But by no means they are the only patterns.
 ### Roles
