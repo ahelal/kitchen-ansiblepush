@@ -26,7 +26,7 @@ def generate_instance_inventory(name, host, mygroup, instance_connection_option,
   # Windows issue ignore SSL
   if ansible_connection == 'winrm'
     temp_hash['ansible_winrm_server_cert_validation'] = 'ignore'
-    temp_hash['ansible_winrm_transport'] = 'ssl'
+    temp_hash['ansible_winrm_transport'] = 'ssl' # should be dynamic
   end
   { name => temp_hash }
 end

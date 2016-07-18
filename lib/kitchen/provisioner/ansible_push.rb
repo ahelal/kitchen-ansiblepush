@@ -138,19 +138,36 @@ module Kitchen
         @command_env
       end
 
+      def chef_installation(chef_url, omnibus_download_dir)
+        if chef_url && chef_url != 'nil' # ignore string nil
+          if conf[:ansible_connection] == 'winrm'
+            chef_installation_script_windows(chef_url)
+          else
+            scripts = []
+            scripts << Util.shell_helpers
+            scripts << chef_installation_script_linux(chef_url, omnibus_download_dir)
+            <<-INSTALL
+              sh -c '#{scripts.join("\n")}'
+            INSTALL
+          end
+        else
+          true_command
+        end
+      end
+
       def prepare_command
         prepare_inventory if conf[:generate_inv]
         # Place holder so a string is returned. This will execute true on remote host
         true_command
       end
 
-     def true_command
-       # Place holder so a string is returned. This will execute true on remote host
-       if conf[:ansible_connection] == "winrm"
-          '$TRUE'
-       else
-          'true'
-       end
+      def true_command
+        # Place holder so a string is returned. This will execute true on remote host
+        if conf[:ansible_connection] == "winrm"
+           '$TRUE'
+        else
+           'true'
+        end
      end
 
       def install_command
@@ -165,20 +182,7 @@ module Kitchen
         raise "%s returned a non zero '%s'" % [version_check, exit_status] unless exit_status.success?
 
         omnibus_download_dir = conf[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
-        chef_installation(conf[:chef_bootstrap_url], omnibus_download_dir, nil)
-      end
-
-      def chef_installation(chef_url, omnibus_download_dir, transport)
-        if chef_url && chef_url != 'nil' # ignore string nil
-          scripts = []
-          scripts << Util.shell_helpers
-          scripts << chef_installation_script(chef_url, omnibus_download_dir, transport)
-          <<-INSTALL
-            sh -c '#{scripts.join("\n")}'
-          INSTALL
-        else
-          true_command
-        end
+        chef_installation(conf[:chef_bootstrap_url], omnibus_download_dir)
       end
 
       def run_command
@@ -239,15 +243,16 @@ module Kitchen
       end
 
       def prepare_inventory
-        if instance_connection_option.nil?
-          hostname =  machine_name
-        elsif not instance_connection_option()[:hostname].nil?
-            instance_connection_option()[:hostname]
-        elsif not instance_connection_option()[:endpoint].nil?
-          require 'uri'
-          urlhost = URI.parse(instance_connection_option()[:endpoint])
-          hostname = urlhost.host
-        end
+        hostname = if instance_connection_option.nil?
+                      machine_name
+                   elsif not instance_connection_option()[:hostname].nil?
+                      instance_connection_option()[:hostname]
+                   elsif not instance_connection_option()[:endpoint].nil?
+                      require 'uri'
+                      urlhost = URI.parse(instance_connection_option()[:endpoint])
+                      instance_connection_option[:port] = urlhost.port unless instance_connection_option[:port]
+                      urlhost.host
+                   end
         debug("hostname='#{hostname}")
         # Generate hosts
         hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf[:ansible_connection])
