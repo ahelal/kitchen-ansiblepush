@@ -243,16 +243,16 @@ module Kitchen
       end
 
       def prepare_inventory
-        if instance_connection_option.nil?
-          hostname =  machine_name
-        elsif not instance_connection_option()[:hostname].nil?
-            instance_connection_option()[:hostname]
-        elsif not instance_connection_option()[:endpoint].nil?
-          require 'uri'
-          urlhost = URI.parse(instance_connection_option()[:endpoint])
-          hostname = urlhost.host
-          instance_connection_option[:port] = urlhost.port unless instance_connection_option[:port]
-        end
+        hostname = if instance_connection_option.nil?
+                      machine_name
+                   elsif not instance_connection_option()[:hostname].nil?
+                      instance_connection_option()[:hostname]
+                   elsif not instance_connection_option()[:endpoint].nil?
+                      require 'uri'
+                      urlhost = URI.parse(instance_connection_option()[:endpoint])
+                      instance_connection_option[:port] = urlhost.port unless instance_connection_option[:port]
+                      urlhost.host
+                   end
         debug("hostname='#{hostname}")
         # Generate hosts
         hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf[:ansible_connection])
