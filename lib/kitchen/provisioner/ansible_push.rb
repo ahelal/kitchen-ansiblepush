@@ -41,6 +41,7 @@ module Kitchen
       default_config :idempotency_test, false
       default_config :fail_non_idempotent, true
       default_config :use_instance_name, false
+      default_config :custom_instance_name, nil
       default_config :ansible_connection, "smart"
 
       # For tests disable if not needed
@@ -82,6 +83,8 @@ module Kitchen
         return @machine_name if defined? @machine_name
         if config[:use_instance_name]
           @machine_name = instance.name.gsub(/[<>]/, '')
+        elsif config[:custom_instance_name]
+          @machine_name = config[:custom_instance_name]
         else
           @machine_name = instance.name.gsub(/[<>]/, '').split('-').drop(1).join('-')
         end
