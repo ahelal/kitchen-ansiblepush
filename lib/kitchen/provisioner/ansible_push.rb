@@ -41,7 +41,7 @@ module Kitchen
       default_config :idempotency_test, false
       default_config :fail_non_idempotent, true
       default_config :use_instance_name, false
-      default_config :ansible_connection, "smart"
+      default_config :ansible_connection, 'smart'
 
       # For tests disable if not needed
       default_config :chef_bootstrap_url, 'https://omnitruck.chef.io/install.sh'
@@ -61,8 +61,8 @@ module Kitchen
 
         # Validate that extra_vars is either a hash, or a path to an existing file
         if config[:extra_vars]
-          extra_vars_is_valid = config[:extra_vars].kind_of?(Hash) || config[:extra_vars].kind_of?(String)
-          if config[:extra_vars].kind_of?(String)
+          extra_vars_is_valid = config[:extra_vars].is_a?(Hash) || config[:extra_vars].is_a?(String)
+          if config[:extra_vars].is_a?(String)
             # Accept the usage of '@' (e.g. '@vars.yml' and 'vars.yml' are both supported)
             match_data = /^@?(.+)$/.match(config[:extra_vars])
             extra_vars_path = match_data[1].to_s
@@ -108,11 +108,11 @@ module Kitchen
         options << "--inventory-file=#{conf[:generate_inv_path]}" if conf[:generate_inv]
 
         # By default we limit by the current machine,
-        if conf[:limit]
-          options << "--limit=#{as_list_argument(conf[:limit])}"
-        else
-          options << "--limit=#{machine_name}"
-        end
+        options << if conf[:limit]
+                     "--limit=#{as_list_argument(conf[:limit])}"
+                   else
+                     "--limit=#{machine_name}"
+                   end
 
         # Add raw argument as final thing
         options << conf[:raw_arguments] if conf[:raw_arguments]
@@ -144,14 +144,14 @@ module Kitchen
         true_command
       end
 
-     def true_command
-       # Place holder so a string is returned. This will execute true on remote host
-       if conf[:ansible_connection] == "winrm"
+      def true_command
+        # Place holder so a string is returned. This will execute true on remote host
+        if conf[:ansible_connection] == 'winrm'
           '$TRUE'
-       else
+        else
           'true'
-       end
-     end
+        end
+      end
 
       def install_command
         # Must install chef for busser and serverspec to work :(
@@ -169,7 +169,6 @@ module Kitchen
       end
 
       def chef_installation(chef_url, omnibus_download_dir, transport)
-
         if chef_url && (chef_url != 'nil') # ignore string nil
           scripts = []
           scripts << Util.shell_helpers
@@ -225,7 +224,7 @@ module Kitchen
       def exec_ansible_command(env, command, desc)
         debug('env=%s command=%s' % [env, command])
         system(env, command.to_s)
-        exit_code = $?.exitstatus
+        exit_code = $CHILD_STATUS.exitstatus
         debug("ansible-playbook exit code = #{exit_code}")
         if exit_code.to_i != 0
           raise '%s returned a non zero \'%s\'. Please see the output above.' % [desc, exit_code.to_s]
@@ -241,12 +240,12 @@ module Kitchen
 
       def prepare_inventory
         if instance_connection_option.nil?
-          hostname =  machine_name
-        elsif not instance_connection_option()[:hostname].nil?
-            instance_connection_option()[:hostname]
-        elsif not instance_connection_option()[:endpoint].nil?
+          hostname = machine_name
+        elsif !instance_connection_option[:hostname].nil?
+          hostname = instance_connection_option[:hostname]
+        elsif !instance_connection_option[:endpoint].nil?
           require 'uri'
-          urlhost = URI.parse(instance_connection_option()[:endpoint])
+          urlhost = URI.parse(instance_connection_option[:endpoint])
           hostname = urlhost.host
         end
         debug("hostname='#{hostname}")
@@ -258,7 +257,7 @@ module Kitchen
       end
 
       def extra_vars_argument
-        if conf[:extra_vars].kind_of?(String) && conf[:extra_vars] =~ /^@.+$/
+        if conf[:extra_vars].is_a?(String) && conf[:extra_vars] =~ /^@.+$/
           # A JSON or YAML file is referenced (requires Ansible 1.3+)
           conf[:extra_vars]
         else
@@ -280,7 +279,7 @@ module Kitchen
       end
 
       def as_list_argument(v)
-        v.kind_of?(Array) ? v.join(',') : v
+        v.is_a?(Array) ? v.join(',') : v
       end
 
       def verbosity_argument
