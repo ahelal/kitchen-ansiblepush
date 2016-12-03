@@ -24,12 +24,13 @@ provisioner:
 
 platforms:
     - name                  : "<%= name %>_V1"
-      provisioner           : 
+      provisioner           :
         ansible_playbook_bin: "`ansible-version path v1`ansible-playbook"
 
     - name                  : "<%= name %>_V2"
       provisioner           :
         ansible_playbook_bin: "`ansible-version path v2`ansible-playbook"
+        chef_bootstrap_url  : nil
 
 suites:
   - name                    : simple

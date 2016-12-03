@@ -91,6 +91,11 @@ By default chef is installed and serverspec stuff. if you dont want to install
 ```yaml
 chef_bootstrap_url: nil
 ```
+## Instance name
+Ansible push generates inventory dynamically you have multipule options to name your instance
+*use_instance_name* 
+*custom_instance_name*
+
 
 ## Windows support
 Kitchen ansiblepush has experimantal support.

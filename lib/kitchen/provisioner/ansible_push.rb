@@ -169,7 +169,8 @@ module Kitchen
       end
 
       def chef_installation(chef_url, omnibus_download_dir, transport)
-        if chef_url && chef_url != 'nil' # ignore string nil
+
+        if chef_url && (chef_url != 'nil') # ignore string nil
           scripts = []
           scripts << Util.shell_helpers
           scripts << chef_installation_script(chef_url, omnibus_download_dir, transport)
