@@ -1,7 +1,13 @@
 #!/bin/sh
 set -e
+#!/bin/bash
+set -e
+echo "Running travis "
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+cd "${DIR}/.."
+
 echo "Run rspec"
-cd ..
 bundle exec rspec --require spec_helper --format d
 
 echo "Run Rubocop"
