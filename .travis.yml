@@ -14,14 +14,13 @@ before_install:
   - ruby --version
 
 install:
-  - bash test/ansible-setup.sh
+  - ./test/ansible-setup.sh
   - bundle install
   - gem build kitchen-ansiblepush.gemspec
   - bundle install
 
 script:
     - ansible --version
-    - export TRAVIS=True
-    - run-tests.sh
+    - ./test/run-tests.sh
 after_success:
     - echo "Success"
