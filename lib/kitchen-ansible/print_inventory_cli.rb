@@ -50,18 +50,15 @@ class PrintInventory
     end
 
     @inventory = { 'all' => @all, '_meta' => { 'hostvars' => @hosts } }
-
-    @inventory = @groups.merge(@inventory)
-
+    @groups.merge(@inventory)
   end
 
   def output_json
-    # Print our inventory
     puts JSON.pretty_generate(@inventory)
   end
 
   def run
-    construct
+    @inventory = construct
     output_json
   end
 end

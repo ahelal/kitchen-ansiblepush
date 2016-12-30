@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'kitchen-ansible/print-inventory-cli.rb'
+require 'kitchen-ansible/print_inventory_cli.rb'
 
 print_inventory = PrintInventory.new
 print_inventory.run
