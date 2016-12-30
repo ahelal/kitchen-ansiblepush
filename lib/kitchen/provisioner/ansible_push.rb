@@ -72,7 +72,7 @@ module Kitchen
             @extra_vars = '@' + extra_vars_path if extra_vars_is_valid
           end
 
-          raise 'ansible extra_vars is in valid type: %s value: %s' % [config[:extra_vars].class.to_s, config[:extra_vars].to_s] unless extra_vars_is_valid
+          raise "ansible extra_vars is in valid type: #{config[:extra_vars].class} value: #{config[:extra_vars]}" unless extra_vars_is_valid
         end
         info('Ansible push config validated')
         @validated_config = config
@@ -80,11 +80,11 @@ module Kitchen
 
       def machine_name
         return @machine_name if defined? @machine_name
-        if config[:use_instance_name]
-          @machine_name = instance.name.gsub(/[<>]/, '')
-        else
-          @machine_name = instance.name.gsub(/[<>]/, '').split('-').drop(1).join('-')
-        end
+        @machine_name = if config[:use_instance_name]
+                          instance.name.gsub(/[<>]/, '')
+                        else
+                          instance.name.gsub(/[<>]/, '').split('-').drop(1).join('-')
+                        end
         debug('machine_name=' + @machine_name.to_s)
         @machine_name
       end
@@ -102,8 +102,8 @@ module Kitchen
         options << '--ask-sudo-pass' if conf[:ask_sudo_pass]
         options << '--ask-vault-pass' if conf[:ask_vault_pass]
         options << "--vault-password-file=#{conf[:vault_password_file]}" if conf[:vault_password_file]
-        options << '--tags=%s' % as_list_argument(conf[:tags]) if conf[:tags]
-        options << '--skip-tags=%s' % as_list_argument(conf[:skip_tags]) if conf[:skip_tags]
+        options << '--tags=#{as_list_argument(conf[:tags])}' if conf[:tags]
+        options << '--skip-tags=#{as_list_argument(conf[:skip_tags])}' if conf[:skip_tags]
         options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
         options << "--inventory-file=#{conf[:generate_inv_path]}" if conf[:generate_inv]
 
@@ -123,7 +123,7 @@ module Kitchen
         return @command if defined? @command
         @command = [conf[:ansible_playbook_bin]]
         @command = (@command << options << conf[:playbook]).flatten.join(' ')
-        debug('Ansible push command= %s' % @command)
+        debug("Ansible push command= #{@command}")
         @command
       end
 
@@ -156,13 +156,12 @@ module Kitchen
       def install_command
         # Must install chef for busser and serverspec to work :(
         info('*************** AnsiblePush install_command ***************')
-        # Test if ansible-playbook is installed and give a meaningful
-        # error message
+        # Test if ansible-playbook is installed and give a meaningful error message
         version_check = command + ' --version'
-        stdin, stdout, stderr, wait_thr = Open3.popen3(command_env, version_check)
+        _, stdout, stderr, wait_thr = Open3.popen3(command_env, version_check)
         exit_status = wait_thr.value
 
-        raise "%s returned a non zero '%s'" % [version_check, exit_status] unless exit_status.success?
+        raise "#{version_check} returned a non zero '#{exit_status}' stdout : #{stdout}, stderr: #{stderr}" unless exit_status.success?
 
         omnibus_download_dir = conf[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
         chef_installation(conf[:chef_bootstrap_url], omnibus_download_dir, nil)
@@ -174,7 +173,7 @@ module Kitchen
           scripts << Util.shell_helpers
           scripts << chef_installation_script(chef_url, omnibus_download_dir, transport)
           <<-INSTALL
-            sh -c '#{scripts.join("\n")}'
+            sh -c "#{scripts.join('\n')}"
           INSTALL
         else
           true_command
@@ -194,6 +193,7 @@ module Kitchen
               'PLUGIN_CHANGES_FILE'      => file_path
             ), command, 'ansible-playbook'
           )
+          debug("idempotency file #{file_path}")
           # Check ansible callback if changes has occured in the second run
           if File.file?(file_path)
             task = 0
@@ -222,12 +222,12 @@ module Kitchen
       protected
 
       def exec_ansible_command(env, command, desc)
-        debug('env=%s command=%s' % [env, command])
+        debug("env=#{env} command=#{command}")
         system(env, command.to_s)
         exit_code = $CHILD_STATUS.exitstatus
         debug("ansible-playbook exit code = #{exit_code}")
         if exit_code.to_i != 0
-          raise '%s returned a non zero \'%s\'. Please see the output above.' % [desc, exit_code.to_s]
+          raise "#{desc} returned a non zero #{exit_code}. Please see the output above."
         end
       end
 
