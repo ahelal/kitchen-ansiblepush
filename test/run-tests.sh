@@ -9,7 +9,7 @@ echo "Run rspec"
 bundle exec rspec --require spec_helper --format d
 
 echo "Run Rubocop"
-bundle exec rubocop lib
+bundle exec rubocop lib bin
 
 bundle exec kitchen test simple
 bundle exec kitchen test notidempotent | tee /tmp/notidempotent
