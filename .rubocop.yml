@@ -1,6 +1,6 @@
 AllCops:
-  Excludes:
-    - callback/**
+  Include:
+    - lib/**
 
 Documentation:
   Enabled: false
@@ -13,6 +13,23 @@ HashSyntax:
 LineLength:
   Enabled: false
 MethodLength:
-  Max: 30
+  Max: 200
 NumericLiterals:
   MinDigits: 10
+
+# Offense count: 6
+Metrics/AbcSize:
+  Max: 71
+
+# Offense count: 1
+# Configuration parameters: CountComments.
+Metrics/ClassLength:
+  Max: 250
+
+# Offense count: 3
+Metrics/CyclomaticComplexity:
+  Max: 18
+
+# Offense count: 3
+Metrics/PerceivedComplexity:
+  Max: 19

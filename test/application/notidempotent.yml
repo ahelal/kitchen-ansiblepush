@@ -1,9 +1,9 @@
 ---
 - name         : not idempotent
-  hosts        : "{{ kitchen_hosts }}"
+  hosts        : "all"
   gather_facts : true
   become       : True
-  connection   : "{{ kitchen_connection | default('local') }}"
+
   tasks:
 
     - name: Non idempotent task

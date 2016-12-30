@@ -37,7 +37,6 @@ build/
 build.sh
 .kitchen/*
 .idea
-Gemfile.lock
 .bundler
 bundler_gems
 *.pyc
@@ -46,3 +45,5 @@ bundler_gems
 coverage
 #
 bin/*
+
+**.retry
