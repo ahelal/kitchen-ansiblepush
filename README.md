@@ -6,7 +6,7 @@
 A test-kitchen plugin that adds the support for ansible in push mode
 
 ## Intro
-This kitchen plugin adds ansible as a provisioner in push mode. Ansible will run from your host rather than run from guest machines.  
+This kitchen plugin adds ansible as a provisioner in push mode. Ansible will run from your host rather than run from guest machines.
 
 ## How to install
 
@@ -24,7 +24,7 @@ gem install kitchen-ansiblepush-<version>.gem
 ```
 
 ### Use Bundler
-My prefered method is use Gemfile
+My preferred method is use Gemfile
 
 ```ruby
 source "https://rubygems.org"
@@ -65,13 +65,13 @@ provisioner         :
     host_key_checking   : false
     generate_inv        : true
     use_instance_name   : false  # use short (platform) instead of instance name by default
-    idempotency_test    : False
+    idempotency_test    : false
 ```
 ## idempotency test
 If you want to check your code is idempotent you can use the idempotency_test. Essentially, this will run Ansible twice and check nothing changed in the next run. If something changed it will list the tasks. Note: If your using Ansible callback in your config this might conflict.
 ```yaml
-    idempotency_test: True
-    fail_non_idempotent: True
+    idempotency_test: true
+    fail_non_idempotent: true
 ```
 
 If your running ansible V2 you need to white list the callback ``` callback_whitelist = changes``` in **ansible.cfg**
@@ -83,22 +83,22 @@ Since ansiblepush uses the host to run Ansible. you can simply specify the path 
 ansible_playbook_bin : /path/to/ansible-playbook
 ```
 
-You can use venv and install multi version of ansible or if you prefer you can use an automated installer [ansible-setup](https://github.com/AutomationWIthAnsible/ansible-setup) you can install multi version of ansible.
+If you want any easy way to manage ansible version [AVM](https://github.com/ahelal/avm)
 For further example you can check a matrix test [ansible-usermanage](https://github.com/AutomationWithAnsible/ansible-usermanage/blob/master/.kitchen.yml)
 
 ## Disable chef installation
-By default chef is installed and serverspec stuff. if you dont want to install
+By default chef is installed and serverspec stuff. if you don't want to install
 ```yaml
 chef_bootstrap_url: nil
 ```
 ## Instance name
-Ansible push generates inventory dynamically you have multipule options to name your instance
-*use_instance_name* 
+Ansible push generates inventory dynamically you have multiple options to name your instance
+*use_instance_name*
 *custom_instance_name*
 
 
 ## Windows support
-Kitchen ansiblepush has experimantal support.
+Kitchen ansiblepush has experimental support.
 to enable windows support you need to add the following to your .kitchen.yml
 ```yaml
 ...
@@ -128,12 +128,12 @@ vars
 Gemfile
 Gemfile.lock
 .gitingore
-tests
+test
     \_ ansible.cfg
     \_ integration
-            \_ server           
+            \_ server
                 \_ server.yml   # my play that will test something
-                \_ serverspec  
+                \_ serverspec
             \_ worker
                 \_ worker.yml # my play that will test something
                 \_ serverspec
@@ -148,5 +148,5 @@ tests
 - https://github.com/knakayama/kitchen-ansiblepush-demo
 
 ## TODO
-- Enable envirionment var ANSIBLE_CALLBACK_WHITELIST="changes" before call
-- Tests (PRs for tests is highligh appreciated)
+- Enable environment var ANSIBLE_CALLBACK_WHITELIST="changes" before call
+- Tests (PRs for tests is highlight appreciated)
