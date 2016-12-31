@@ -204,11 +204,9 @@ module Kitchen
                 info(" #{task}> #{line.strip}")
               end
             end
-            if conf[:fail_non_idempotent]
-              raise "idempotency test Failed. Number of non idempotent tasks: #{task}"
-            else
-              info('Warning idempotency test [failed]')
-            end
+            raise "idempotency test Failed. Number of non idempotent tasks: #{task}" if conf[:fail_non_idempotent]
+            # If we reach this point we should give a warning
+            info('Warning idempotency test [failed]')
           else
             info('idempotency test [passed]')
           end
@@ -226,9 +224,7 @@ module Kitchen
         system(env, command.to_s)
         exit_code = $CHILD_STATUS.exitstatus
         debug("ansible-playbook exit code = #{exit_code}")
-        if exit_code.to_i != 0
-          raise "#{desc} returned a non zero #{exit_code}. Please see the output above."
-        end
+        raise "#{desc} returned a non zero #{exit_code}. Please see the output above." if exit_code.to_i != 0
       end
 
       def instance_connection_option
