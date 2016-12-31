@@ -13,7 +13,6 @@ provisioner                 :
     name                    : ansible_push
     ansible_config          : "test/ansible.cfg"
     idempotency_test        : true
-    chef_bootstrap_url      : nil
 
 platforms:
     - name                  : "ubuntu_V1.9"
@@ -32,7 +31,12 @@ platforms:
       provisioner           :
         ansible_playbook_bin: "`avm path v2.2`ansible-playbook"
 suites                      :
-  - name                    : simple
+  - name                    : simpleNoChef
+    provisioner             :
+      playbook              : "test/application/simple.yml"
+      chef_bootstrap_url    : nil
+
+  - name                    : simpleWithChef
     provisioner             :
       playbook              : "test/application/simple.yml"
 
@@ -40,4 +44,4 @@ suites                      :
     provisioner             :
       playbook              : "test/application/notidempotent.yml"
       fail_non_idempotent   : false
-
+      chef_bootstrap_url    : nil

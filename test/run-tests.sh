@@ -11,7 +11,8 @@ bundle exec rspec --require spec_helper --format d
 echo "Run Rubocop"
 bundle exec rubocop lib
 
-bundle exec kitchen test simple
+bundle exec kitchen test simpleNoChef
+bundle exec kitchen test simpleWithChef
 bundle exec kitchen test notidempotent | tee /tmp/notidempotent
 
 number_of_servers_in_idempotent="$(bundle exec kitchen list notidempotent | grep Ssh | wc -l |  tr -d '[[:space:]]')"
@@ -23,6 +24,4 @@ if [ ! "${failed_nonotidempotent}" = "${number_of_servers_in_idempotent}" ] ; th
     exit 1
 fi
 
-
 printf "\n\n\nTest Pass :)"
-

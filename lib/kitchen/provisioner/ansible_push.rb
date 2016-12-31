@@ -164,16 +164,16 @@ module Kitchen
         raise "#{version_check} returned a non zero '#{exit_status}' stdout : #{stdout}, stderr: #{stderr}" unless exit_status.success?
 
         omnibus_download_dir = conf[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
-        chef_installation(conf[:chef_bootstrap_url], omnibus_download_dir, nil)
+        chef_installation(conf[:chef_bootstrap_url], omnibus_download_dir)
       end
 
-      def chef_installation(chef_url, omnibus_download_dir, transport)
+      def chef_installation(chef_url, omnibus_download_dir)
         if chef_url && (chef_url != 'nil') # ignore string nil
           scripts = []
           scripts << Util.shell_helpers
-          scripts << chef_installation_script(chef_url, omnibus_download_dir, transport)
+          scripts << chef_installation_script(chef_url, omnibus_download_dir)
           <<-INSTALL
-            sh -c "#{scripts.join('\n')}"
+            sh -c #{scripts.join("\n")}
           INSTALL
         else
           true_command
