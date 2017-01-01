@@ -1,10 +1,11 @@
+require 'json'
 require 'open3'
 require 'kitchen'
+require 'kitchen/errors'
 require 'kitchen/provisioner/base'
-require 'kitchen-ansible/util_inventory.rb'
-require 'kitchen-ansible/chef_installation.rb'
-require 'json'
-require 'securerandom'
+require 'kitchen-ansible/util_inventory'
+require 'kitchen-ansible/chef_installation'
+require 'kitchen-ansible/idempotancy'
 
 module Kitchen
   class Busser
@@ -23,6 +24,9 @@ module Kitchen
       default_config :groups, nil
       default_config :extra_vars, nil
       default_config :sudo, nil
+      default_config :become, nil
+      default_config :become_user, nil
+      default_config :become_method, nil
       default_config :sudo_user, nil
       default_config :remote_user, nil
       default_config :private_key, nil
@@ -42,6 +46,15 @@ module Kitchen
       default_config :fail_non_idempotent, true
       default_config :use_instance_name, false
       default_config :ansible_connection, 'smart'
+      default_config :timeout, nil
+      default_config :force_handlers, nil
+      default_config :step, nil
+      default_config :module_path, nil
+      default_config :scp_extra_args, nil
+      default_config :sftp_extra_args, nil
+      default_config :ssh_extra_args, nil
+      default_config :ssh_common_args, nil
+      default_config :module_path, nil
 
       # For tests disable if not needed
       default_config :chef_bootstrap_url, 'https://omnitruck.chef.io/install.sh'
@@ -51,12 +64,12 @@ module Kitchen
       def conf
         return @validated_config if defined? @validated_config
 
-        raise 'No playbook defined. Please specify one in .kitchen.yml' unless config[:playbook]
+        raise UserError, 'No playbook defined. Please specify one in .kitchen.yml' unless config[:playbook]
 
-        raise "playbook '#{config[:playbook]}' could not be found. Please check path" unless File.exist?(config[:playbook])
+        raise UserError, "playbook '#{config[:playbook]}' could not be found. Please check path" unless File.exist?(config[:playbook])
 
         if config[:vault_password_file] && !File.exist?(config[:vault_password_file])
-          raise "Vault password '#{config[:vault_password_file]}' could not be found. Please check path"
+          raise UserError, "Vault password '#{config[:vault_password_file]}' could not be found. Please check path"
         end
 
         # Validate that extra_vars is either a hash, or a path to an existing file
@@ -72,7 +85,7 @@ module Kitchen
             @extra_vars = '@' + extra_vars_path if extra_vars_is_valid
           end
 
-          raise "ansible extra_vars is in valid type: #{config[:extra_vars].class} value: #{config[:extra_vars]}" unless extra_vars_is_valid
+          raise UserError, "ansible extra_vars is in valid type: #{config[:extra_vars].class} value: #{config[:extra_vars]}" unless extra_vars_is_valid
         end
         info('Ansible push config validated')
         @validated_config = config
@@ -89,32 +102,53 @@ module Kitchen
         @machine_name
       end
 
+      def options_user
+        ## Support sudo and become
+        temp_options = []
+        raise UserError, '"sudo" and "become" are mutually_exclusive' if conf[:sudo] && conf[:become]
+        temp_options << '--become' if conf[:sudo] || conf[:become]
+
+        raise UserError, '"sudo_user" and "become_user" are mutually_exclusive' if conf[:sudo_user] && conf[:become_user]
+        if conf[:sudo_user]
+          temp_options << "--become-user=#{conf[:sudo_user]}"
+        elsif conf[:become_user]
+          temp_options << "--become-user=#{conf[:become_user]}"
+        end
+        temp_options << "--user=#{conf[:remote_user]}" if remote_user
+        temp_options << "--become-method=#{conf[:become_method]}" if conf[:become_method]
+        temp_options << '--ask-sudo-pass' if conf[:ask_sudo_pass]
+        temp_options
+      end
+
       def options
         return @options if defined? @options
-        options = []
+        # options = options_user | options
+        options = options_user
         options << "--extra-vars='#{extra_vars_argument}'" if conf[:extra_vars]
-        options << '--sudo' if conf[:sudo]
-        options << "--sudo-user=#{conf[:sudo_user]}" if conf[:sudo_user]
-        options << "--user=#{conf[:remote_user]}" if remote_user
         options << "--private-key=#{conf[:private_key]}" if conf[:private_key]
-        options << verbosity_argument.to_s if conf[:verbose]
         options << '--diff' if conf[:diff]
-        options << '--ask-sudo-pass' if conf[:ask_sudo_pass]
         options << '--ask-vault-pass' if conf[:ask_vault_pass]
         options << "--vault-password-file=#{conf[:vault_password_file]}" if conf[:vault_password_file]
         options << '--tags=#{as_list_argument(conf[:tags])}' if conf[:tags]
         options << '--skip-tags=#{as_list_argument(conf[:skip_tags])}' if conf[:skip_tags]
         options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
         options << "--inventory-file=#{conf[:generate_inv_path]}" if conf[:generate_inv]
-
+        options << verbosity_argument.to_s if conf[:verbose]
         # By default we limit by the current machine,
         options << if conf[:limit]
                      "--limit=#{as_list_argument(conf[:limit])}"
                    else
                      "--limit=#{machine_name}"
                    end
-
-        # Add raw argument as final thing
+        options << "--timeout=#{conf[:timeout]}" if conf[:timeout]
+        options << "--force-handlers=#{conf[:force_handlers]}" if conf[:force_handlers]
+        options << "--step=#{conf[:step]}" if conf[:step]
+        options << "--module-path=#{conf[:module_path]}" if conf[:module_path]
+        options << "--scp-extra-args=#{conf[:scp_extra_args]}" if conf[:scp_extra_args]
+        options << "--sftp-extra-args=#{conf[:sftp_extra_args]}" if conf[:sftp_extra_args]
+        options << "--ssh-common-args=#{conf[:ssh_common_args]}" if conf[:ssh_common_args]
+        options << "--ssh-extra-args=#{conf[:ssh_extra_args]}" if conf[:ssh_extra_args]
+        # Add raw argument at the end
         options << conf[:raw_arguments] if conf[:raw_arguments]
         @options = options
       end
@@ -154,15 +188,12 @@ module Kitchen
       end
 
       def install_command
-        # Must install chef for busser and serverspec to work :(
         info('*************** AnsiblePush install_command ***************')
         # Test if ansible-playbook is installed and give a meaningful error message
         version_check = command + ' --version'
         _, stdout, stderr, wait_thr = Open3.popen3(command_env, version_check)
         exit_status = wait_thr.value
-
-        raise "#{version_check} returned a non zero '#{exit_status}' stdout : #{stdout}, stderr: #{stderr}" unless exit_status.success?
-
+        raise UserError, "#{version_check} returned a non zero '#{exit_status}' stdout : #{stdout}, stderr: #{stderr}" unless exit_status.success?
         omnibus_download_dir = conf[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
         chef_installation(conf[:chef_bootstrap_url], omnibus_download_dir)
       end
@@ -176,45 +207,17 @@ module Kitchen
             sh -c #{scripts.join("\n")}
           INSTALL
         else
-          true_command
+          true_command # Place holder so a string is returned. This will execute true on remote host
         end
       end
 
       def run_command
         info('*************** AnsiblePush run ***************')
         exec_ansible_command(command_env, command, 'ansible-playbook')
-        # idempotency test
-        if conf[:idempotency_test]
-          info('*************** idempotency test ***************')
-          file_path = "/tmp/kitchen_ansible_callback/#{SecureRandom.uuid}.changes"
-          exec_ansible_command(
-            command_env.merge(
-              'ANSIBLE_CALLBACK_PLUGINS' => "#{File.dirname(__FILE__)}/../../../callback/",
-              'PLUGIN_CHANGES_FILE'      => file_path
-            ), command, 'ansible-playbook'
-          )
-          debug("idempotency file #{file_path}")
-          # Check ansible callback if changes has occured in the second run
-          if File.file?(file_path)
-            task = 0
-            info('idempotency test [Failed]')
-            File.open(file_path, 'r') do |f|
-              f.each_line do |line|
-                task += 1
-                info(" #{task}> #{line.strip}")
-              end
-            end
-            raise "idempotency test Failed. Number of non idempotent tasks: #{task}" if conf[:fail_non_idempotent]
-            # If we reach this point we should give a warning
-            info('Warning idempotency test [failed]')
-          else
-            info('idempotency test [passed]')
-          end
-        end
+        idempotency_test if conf[:idempotency_test]
         info('*************** AnsiblePush end run *******************')
         debug("[#{name}] Converge completed (#{conf[:sleep]}s).")
-        # Place holder so a string is returned. This will execute true on remote host
-        true_command
+        true_command # Place holder so a string is returned. This will execute true on remote host
       end
 
       protected
@@ -224,7 +227,7 @@ module Kitchen
         system(env, command.to_s)
         exit_code = $CHILD_STATUS.exitstatus
         debug("ansible-playbook exit code = #{exit_code}")
-        raise "#{desc} returned a non zero #{exit_code}. Please see the output above." if exit_code.to_i != 0
+        raise UserError, "#{desc} returned a non zero #{exit_code}. Please see the output above." if exit_code.to_i != 0
       end
 
       def instance_connection_option
@@ -254,11 +257,10 @@ module Kitchen
 
       def extra_vars_argument
         if conf[:extra_vars].is_a?(String) && conf[:extra_vars] =~ /^@.+$/
-          # A JSON or YAML file is referenced (requires Ansible 1.3+)
+          # A JSON or YAML file is referenced
           conf[:extra_vars]
         else
-          # Expected to be a Hash after config validation. (extra_vars as
-          # JSON requires Ansible 1.2+, while YAML requires Ansible 1.3+)
+          # Expected to be a Hash after config validation.
           conf[:extra_vars].to_json
         end
       end

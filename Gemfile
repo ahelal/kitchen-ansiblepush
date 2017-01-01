@@ -1,11 +1,11 @@
-source "https://rubygems.org"
-
 gemspec
+source 'https://rubygems.org'
 group :development do
-  gem 'test-kitchen'
   gem 'kitchen-docker'
-  gem 'kitchen-localhost'
-  gem 'rubocop', require: false
-  gem 'simplecov', :require => false
+  gem 'pry'
+  gem 'rspec'
+  gem 'rubocop'
+  gem 'simplecov'
+  gem 'test-kitchen'
 end
 
