@@ -19,7 +19,7 @@ NumericLiterals:
 
 # Offense count: 6
 Metrics/AbcSize:
-  Max: 71
+  Max: 120
 
 # Offense count: 1
 # Configuration parameters: CountComments.
@@ -28,8 +28,8 @@ Metrics/ClassLength:
 
 # Offense count: 3
 Metrics/CyclomaticComplexity:
-  Max: 18
+  Max: 30
 
 # Offense count: 3
 Metrics/PerceivedComplexity:
-  Max: 19
+  Max: 30
