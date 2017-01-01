@@ -52,6 +52,7 @@ module Kitchen
       default_config :module_path, nil
       default_config :scp_extra_args, nil
       default_config :sftp_extra_args, nil
+      default_config :ssh_extra_args, nil
       default_config :ssh_common_args, nil
       default_config :module_path, nil
 
