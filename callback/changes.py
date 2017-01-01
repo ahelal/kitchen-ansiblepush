@@ -29,7 +29,7 @@ class CallbackModule(CallbackBase):
             os.remove(self.change_file)
         except OSError as e: # this would be "except OSError, e:" before Python 2.6
             if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
-                raise # re-raise exception if a different error occured
+                raise # re-raise exception if a different error occurred
 
 
     def write_changed_to_file(self, host, res, name=None):
@@ -108,4 +108,4 @@ class CallbackModule(CallbackBase):
         pass
 
     def playbook_on_stats(self, stats):
-        pass
+        print "Call back end"
