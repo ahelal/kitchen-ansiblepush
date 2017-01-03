@@ -193,7 +193,7 @@ module Kitchen
         version_check = command + ' --version'
         _, stdout, stderr, wait_thr = Open3.popen3(command_env, version_check)
         exit_status = wait_thr.value
-        raise UserError, "#{version_check} returned a non zero '#{exit_status}' stdout : #{stdout}, stderr: #{stderr}" unless exit_status.success?
+        raise UserError, "#{version_check} returned a non zero '#{exit_status}' stdout : '#{stdout.read}', stderr: '#{stderr.read}'" unless exit_status.success?
         omnibus_download_dir = conf[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
         chef_installation(conf[:chef_bootstrap_url], omnibus_download_dir)
       end
