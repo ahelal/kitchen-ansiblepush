@@ -17,6 +17,12 @@ MethodLength:
 NumericLiterals:
   MinDigits: 10
 
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
 # Offense count: 6
 Metrics/AbcSize:
   Max: 120
