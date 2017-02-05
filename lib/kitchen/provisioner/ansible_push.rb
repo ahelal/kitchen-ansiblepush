@@ -247,7 +247,7 @@ module Kitchen
           urlhost = URI.parse(instance_connection_option[:endpoint])
           hostname = urlhost.host
         end
-        debug("hostname='#{hostname}")
+        debug("hostname='#{hostname}'")
         # Generate hosts
         hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf[:ansible_connection])
         write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
