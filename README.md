@@ -12,20 +12,7 @@ It is designed to just simply work with minimum configuration. Just run as you w
 
 ## How to install
 
-### Ruby gem
-```
-gem install kitchen-ansiblepush
-```
-
-### To install from code
-```bash
-git clone git@github.com:ahelal/kitchen-ansiblepush.git
-cd kitchen-ansiblepush
-gem build kitchen-ansiblepush.gemspec
-gem install kitchen-ansiblepush-<version>.gem
-```
-
-### Use Bundler
+### (1) Use Bundler
 My preferred method is use Gemfile
 
 ```ruby
@@ -37,6 +24,19 @@ group :development do
 end
 ```
 
+### (2) Ruby gem
+```bash
+gem install kitchen-ansiblepush
+```
+
+### (3) Install from code
+```bash
+git clone git@github.com:ahelal/kitchen-ansiblepush.git
+cd kitchen-ansiblepush
+gem build kitchen-ansiblepush.gemspec
+gem install kitchen-ansiblepush-<version>.gem
+```
+
 ## kitchen.yml Options
 ```yaml
 provisioner         :
@@ -46,7 +46,7 @@ provisioner         :
     ##
     ## Optional  argument
     ansible_config      : "/path/to/ansible/ansible.cfg" # path to ansible config file
-    verbose             : "vvvv" #  verbose level v, vv, vvv, vvvv
+    verbose             : "vvvv" # verbose level v, vv, vvv, vvvv
     diff                : true  # print file diff
     mygroup             : "web" # ansible group, or list of groups
     raw_arguments       : "--timeout=200"
@@ -69,18 +69,20 @@ provisioner         :
     use_instance_name   : false  # use short (platform) instead of instance name by default
     idempotency_test    : false
 ```
-## idempotency test
+## Idempotency test
 If you want to check your code is idempotent you can use the idempotency_test. Essentially, this will run Ansible twice and check nothing changed in the second run. If something changed it will list the tasks. Note: If your using Ansible callback in your config this might conflict.
+
 ```yaml
     idempotency_test: true
     fail_non_idempotent: true
 ```
 
-If your running ansible V2 you need to white list the callback ``` callback_whitelist = changes``` in **ansible.cfg**
+If your running ansible V2 you need to white list the callback ```callback_whitelist = changes``` in **ansible.cfg**
 You can also choose to not to fail if idempotency test fails.
 
 ##  Ansible version
 Since ansiblepush uses the host to run Ansible. you can simply specify the path of your ansible-playbook executable in your .kitchen.yml
+
 ```yaml
 ansible_playbook_bin : /path/to/ansible-playbook
 ```
@@ -90,6 +92,7 @@ For further example you can check a matrix test [ansible-usermanage](https://git
 
 ## Disable chef installation
 By default chef is installed and serverspec stuff. if you don't want to install
+
 ```yaml
 chef_bootstrap_url: nil
 ```
@@ -101,7 +104,8 @@ Ansible push generates inventory dynamically you have multiple options to name y
 
 ## Windows support
 Kitchen ansiblepush has experimental support.
-to enable windows support you need to add the following to your .kitchen.yml
+to enable windows support you need to add the following to your *.kitchen.yml*
+
 ```yaml
 ...
 transport:
@@ -120,6 +124,7 @@ You can use ansible push  with different pattern. I will list some of the ways t
 I define my Gemfile in the role. I then run ```bundle install``` and commit my *Gemfile.lock* I also ignore ```.kitchen```
 
 A typical structure of an ansible role
+
 ```yaml
 defaults
 handlers
