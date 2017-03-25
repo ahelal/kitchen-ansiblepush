@@ -3,10 +3,12 @@
 [![Gem Downloads](http://ruby-gem-downloads-badge.herokuapp.com/kitchen-ansiblepush?type=total&color=brightgreen)](https://rubygems.org/gems/kitchen-ansiblepush)
 [![Build Status](https://travis-ci.org/ahelal/kitchen-ansiblepush.svg?branch=master)](https://travis-ci.org/ahelal/kitchen-ansiblepush)
 
-A test-kitchen plugin that adds the support for ansible in push mode
+A test-kitchen plugin that adds the support for ansible in push mode i.e. normal mode :)
 
 ## Intro
-This kitchen plugin adds ansible as a provisioner in push mode. Ansible will run from your host rather than run from guest machines.
+This kitchen plugin adds ansible as a provisioner in push mode. Ansible will run from your host rather than run from guest instance(s). That also means your code will not be copied to guest. 
+
+It is designed to just simply work with minimum configuration. Just run as you would normaly do. 
 
 ## How to install
 
@@ -16,7 +18,7 @@ gem install kitchen-ansiblepush
 ```
 
 ### To install from code
-```
+```bash
 git clone git@github.com:ahelal/kitchen-ansiblepush.git
 cd kitchen-ansiblepush
 gem build kitchen-ansiblepush.gemspec
@@ -68,7 +70,7 @@ provisioner         :
     idempotency_test    : false
 ```
 ## idempotency test
-If you want to check your code is idempotent you can use the idempotency_test. Essentially, this will run Ansible twice and check nothing changed in the next run. If something changed it will list the tasks. Note: If your using Ansible callback in your config this might conflict.
+If you want to check your code is idempotent you can use the idempotency_test. Essentially, this will run Ansible twice and check nothing changed in the second run. If something changed it will list the tasks. Note: If your using Ansible callback in your config this might conflict.
 ```yaml
     idempotency_test: true
     fail_non_idempotent: true
