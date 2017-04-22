@@ -10,7 +10,7 @@ require 'kitchen-ansible/idempotancy'
 module Kitchen
   class Busser
     def non_suite_dirs
-      %w({data})
+      %w[{data}]
     end
   end
 
@@ -107,6 +107,7 @@ module Kitchen
         temp_options = []
         raise UserError, '"sudo" and "become" are mutually_exclusive' if conf[:sudo] && conf[:become]
         temp_options << '--become' if conf[:sudo] || conf[:become]
+
         raise UserError, '"sudo_user" and "become_user" are mutually_exclusive' if conf[:sudo_user] && conf[:become_user]
         if conf[:sudo_user]
           temp_options << "--become-user=#{conf[:sudo_user]}"
@@ -117,7 +118,6 @@ module Kitchen
         temp_options << "--become-method=#{conf[:become_method]}" if conf[:become_method]
         temp_options << '--ask-sudo-pass' if conf[:ask_sudo_pass]
         temp_options
-
       end
 
       def options
@@ -249,7 +249,7 @@ module Kitchen
         end
         debug("hostname='#{hostname}'")
         # Generate hosts
-        hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf[:ansible_connection], conf[:ansible_port])
+        hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf)
         write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
         # Generate groups (if defined)
         write_var_to_yaml(TEMP_GROUP_FILE, conf[:groups]) if conf[:groups]
