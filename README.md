@@ -114,6 +114,7 @@ transport:
 provisioner:
     name                  : ansible_push
     chef_bootstrap_url    : nil
+    ansible_port          : 5586
     ansible_connection    : "winrm"
 ...
 ```
