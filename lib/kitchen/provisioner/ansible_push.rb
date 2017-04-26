@@ -10,7 +10,7 @@ require 'kitchen-ansible/idempotancy'
 module Kitchen
   class Busser
     def non_suite_dirs
-      %w({data})
+      %w[{data}]
     end
   end
 
@@ -249,7 +249,7 @@ module Kitchen
         end
         debug("hostname='#{hostname}'")
         # Generate hosts
-        hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf[:ansible_connection])
+        hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf)
         write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
         # Generate groups (if defined)
         write_var_to_yaml(TEMP_GROUP_FILE, conf[:groups]) if conf[:groups]
