@@ -1,39 +1,38 @@
 #!/bin/bash
 set -e
-echo "Running travis "
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+echo "Running ansible setup AVM "
 
-SETUP_VERSION="v0.2.0"
-#SETUP_VERBOSITY="vv"
+export AVM_VERSION="v1.0.0"
 
-## Install Ansible 1.9
-ANSIBLE_VERSIONS[0]="1.9.6"
-INSTALL_TYPE[0]="pip"
-ANSIBLE_LABEL[0]="v1.9"
+export ANSIBLE_VERSIONS_0="1.9.6"
+export INSTALL_TYPE_0="pip"
+export ANSIBLE_LABEL_0="v1.9"
 
-## Install Ansible 2.0
-ANSIBLE_VERSIONS[1]="2.0.2.0"
-INSTALL_TYPE[1]="pip"
-ANSIBLE_LABEL[1]="v2.0"
+export ANSIBLE_VERSIONS_1="2.0.2.0"
+export INSTALL_TYPE_1="pip"
+export ANSIBLE_LABEL_1="v2.0"
 
-## Install Ansible 2.1
-ANSIBLE_VERSIONS[2]="2.1.0.0"
-INSTALL_TYPE[2]="pip"
-ANSIBLE_LABEL[2]="v2.1"
 
-## Install Ansible 2.2
-ANSIBLE_VERSIONS[3]="2.2.0.0"
-INSTALL_TYPE[3]="pip"
-ANSIBLE_LABEL[3]="v2.2"
+export ANSIBLE_VERSIONS_2="2.1.6.0"
+export INSTALL_TYPE_2="pip"
+export ANSIBLE_LABEL_2="v2.1"
+
+export ANSIBLE_VERSIONS_4="2.2.3.0"
+export INSTALL_TYPE_4="pip"
+export ANSIBLE_LABEL_4="v2.2"
+
+export ANSIBLE_VERSIONS_4="2.3.1.0"
+export INSTALL_TYPE_4="pip"
+export ANSIBLE_LABEL_4="v2.3"
 
 # Whats the default version
-ANSIBLE_DEFAULT_VERSION="v1.9"
+export ANSIBLE_DEFAULT_VERSION="v1.9"
 
-## Create a temp dir
-filename=$( echo ${0} | sed 's|/||g' )
-my_temp_dir="$(mktemp -dt ${filename}.XXXX)"
-
-curl -s "https://raw.githubusercontent.com/ahelal/avm/${SETUP_VERSION}/setup.sh" -o "$my_temp_dir/setup.sh"
-
+## Create a temp dir to download avm
+avm_dir="$(mktemp -d 2> /dev/null || mktemp -d -t 'mytmpdir')"
+git clone https://github.com/ahelal/avm.git "${avm_dir}" > /dev/null 2>&1
 ## Run the setup
-. "$my_temp_dir/setup.sh"
+/bin/sh "${avm_dir}/setup.sh"
+
+exit 0
+
