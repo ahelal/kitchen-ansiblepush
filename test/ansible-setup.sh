@@ -12,14 +12,13 @@ export ANSIBLE_VERSIONS_1="2.0.2.0"
 export INSTALL_TYPE_1="pip"
 export ANSIBLE_LABEL_1="v2.0"
 
-
 export ANSIBLE_VERSIONS_2="2.1.6.0"
 export INSTALL_TYPE_2="pip"
 export ANSIBLE_LABEL_2="v2.1"
 
-export ANSIBLE_VERSIONS_4="2.2.3.0"
-export INSTALL_TYPE_4="pip"
-export ANSIBLE_LABEL_4="v2.2"
+export ANSIBLE_VERSIONS_3="2.2.3.0"
+export INSTALL_TYPE_3="pip"
+export ANSIBLE_LABEL_3="v2.2"
 
 export ANSIBLE_VERSIONS_4="2.3.1.0"
 export INSTALL_TYPE_4="pip"
