@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kitchen-ansiblepush (0.7.1)
+    kitchen-ansiblepush (0.8.0)
       test-kitchen (~> 1.4)
 
 GEM
