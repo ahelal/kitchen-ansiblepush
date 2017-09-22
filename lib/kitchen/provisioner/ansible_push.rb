@@ -95,6 +95,8 @@ module Kitchen
         return @machine_name if defined? @machine_name
         @machine_name = if config[:use_instance_name]
                           instance.name.gsub(/[<>]/, '')
+                        elsif config[:custom_instance_name]
+                          config[:custom_instance_name]
                         else
                           instance.name.gsub(/[<>]/, '').split('-').drop(1).join('-')
                         end

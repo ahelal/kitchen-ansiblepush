@@ -98,8 +98,9 @@ chef_bootstrap_url: nil
 ```
 ## Instance name
 Ansible push generates inventory dynamically you have multiple options to name your instance
-*use_instance_name*
-*custom_instance_name*
+*use_instance_name* = false (default): <platform>
+*use_instance_name* = true: <instance_name>-<platform>
+*custom_instance_name*: <custom_instance_name>
 
 
 ## Windows support
