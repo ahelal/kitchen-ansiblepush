@@ -15,25 +15,29 @@ provisioner                 :
     idempotency_test        : true
 
 platforms:
-    - name                  : "ubuntu_V1.9"
+    - name                  : "ubuntuV19"
       provisioner           :
         ansible_playbook_bin: "`avm path v1.9`ansible-playbook"
 
-    - name                  : "ubuntu_V2.0"
+    - name                  : "ubuntuV20"
       provisioner           :
         ansible_playbook_bin: "`avm path v2.0`ansible-playbook"
 
-    - name                  : "ubuntu_V2.1"
+    - name                  : "ubuntuV21"
       provisioner           :
         ansible_playbook_bin: "`avm path v2.1`ansible-playbook"
 
-    - name                  : "ubuntu_V2.2"
+    - name                  : "ubuntuV22"
       provisioner           :
         ansible_playbook_bin: "`avm path v2.2`ansible-playbook"
 
-    - name                  : "ubuntu_V2.3"
+    - name                  : "ubuntuV23"
       provisioner           :
         ansible_playbook_bin: "`avm path v2.3`ansible-playbook"
+
+    - name                  : "ubuntuV24"
+      provisioner           :
+        ansible_playbook_bin: "`avm path v2.4`ansible-playbook"
 
 suites                      :
   - name                    : simpleNoChef

@@ -20,9 +20,13 @@ export ANSIBLE_VERSIONS_3="2.2.3.0"
 export INSTALL_TYPE_3="pip"
 export ANSIBLE_LABEL_3="v2.2"
 
-export ANSIBLE_VERSIONS_4="2.3.1.0"
+export ANSIBLE_VERSIONS_4="2.3.2.0"
 export INSTALL_TYPE_4="pip"
 export ANSIBLE_LABEL_4="v2.3"
+
+export ANSIBLE_VERSIONS_4="2.4.0.0"
+export INSTALL_TYPE_4="pip"
+export ANSIBLE_LABEL_4="v2.4"
 
 # Whats the default version
 export ANSIBLE_DEFAULT_VERSION="v1.9"
