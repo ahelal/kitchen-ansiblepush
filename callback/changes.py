@@ -1,6 +1,8 @@
-import json
 import os
 import errno
+import json as js
+if not hasattr(js, 'dumps'):
+    js = js.json
 
 try:
     from ansible.plugins.callback import CallbackBase
@@ -44,7 +46,7 @@ class CallbackModule(CallbackBase):
 
         try:
             with open(self.change_file, 'at') as the_file:
-                the_file.write(json.dumps(changed_data) + "\n")
+                the_file.write(js.dumps(changed_data) + "\n")
         except Exception, e:
             print "Ansible callback idempotency: Write to file failed '%s' error:'%s'" % (self.change_file, e)
             exit(1)
