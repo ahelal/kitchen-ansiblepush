@@ -7,7 +7,7 @@ if not hasattr(js, 'dumps'):
 try:
     from ansible.plugins.callback import CallbackBase
 except ImportError:
-    print "Fallback to Ansible 1.x compatibility"
+    print("Fallback to Ansible 1.x compatibility")
     CallbackBase = object
 
 class CallbackModule(CallbackBase):
@@ -47,8 +47,8 @@ class CallbackModule(CallbackBase):
         try:
             with open(self.change_file, 'at') as the_file:
                 the_file.write(js.dumps(changed_data) + "\n")
-        except Exception, e:
-            print "Ansible callback idempotency: Write to file failed '%s' error:'%s'" % (self.change_file, e)
+        except Exception as e:
+            print("Ansible callback idempotency: Write to file failed '{0}' error:'{1}'".format(self.change_file, e))
             exit(1)
 
     def on_any(self, *args, **kwargs):
@@ -110,4 +110,4 @@ class CallbackModule(CallbackBase):
         pass
 
     def playbook_on_stats(self, stats):
-        print "Call back end"
+        print("Call back end")
