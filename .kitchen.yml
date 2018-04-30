@@ -39,6 +39,10 @@ platforms:
       provisioner           :
         ansible_playbook_bin: "`avm path v2.4`ansible-playbook"
 
+    - name                  : "ubuntuV25"
+      provisioner           :
+        ansible_playbook_bin: "`avm path v2.5`ansible-playbook"
+
 suites                      :
   - name                    : simpleNoChef
     provisioner             :
