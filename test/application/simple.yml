@@ -8,3 +8,8 @@
       copy:
         content="{{ inventory_hostname }}"
         dest="/var/{{ inventory_hostname }}-test.txt"
+
+    - name: Run ls
+      command: ls
+      become: False
+      changed_when: false
