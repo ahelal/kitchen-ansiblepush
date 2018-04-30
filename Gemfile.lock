@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kitchen-ansiblepush (0.8.0)
+    kitchen-ansiblepush (0.9.1)
       test-kitchen (~> 1.4)
 
 GEM
@@ -91,4 +91,4 @@ DEPENDENCIES
   test-kitchen
 
 BUNDLED WITH
-   1.13.6
+   1.16.0
