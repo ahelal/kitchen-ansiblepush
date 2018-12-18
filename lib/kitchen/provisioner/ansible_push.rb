@@ -56,6 +56,7 @@ module Kitchen
       default_config :ssh_common_args, nil
       default_config :module_path, nil
       default_config :pass_transport_password, false
+      default_config :environment_vars, {}
 
       # For tests disable if not needed
       default_config :chef_bootstrap_url, 'https://omnitruck.chef.io/install.sh'
@@ -88,6 +89,12 @@ module Kitchen
 
           raise UserError, "ansible extra_vars is in valid type: #{config[:extra_vars].class} value: #{config[:extra_vars]}" unless extra_vars_is_valid
         end
+
+        unless config[:environment_vars].is_a?(Hash)
+          raise UserError,
+                "ansible environment_vars is not a `Hash` type. Given type: #{config[:environment_vars].class}"
+        end
+
         info('Ansible push config validated')
         @validated_config = config
       end
@@ -176,6 +183,11 @@ module Kitchen
           'ANSIBLE_HOST_KEY_CHECKING' => conf[:host_key_checking].to_s
         }
         @command_env['ANSIBLE_CONFIG'] = conf[:ansible_config] if conf[:ansible_config]
+
+        # NOTE: Manually merge to fix keys possibly being Symbol(s)
+        conf[:environment_vars].each do |key, value|
+          @command_env[key.to_s] = value
+        end
         @command_env
       end
 
