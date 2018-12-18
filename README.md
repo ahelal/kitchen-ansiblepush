@@ -42,7 +42,11 @@ gem install kitchen-ansiblepush-<version>.gem
 provisioner         :
     ## required options
     name                : ansible_push
+    ## Either `playbook` or `playbooks` is required
     playbook            : "../../plays/web.yml"     # Path to Play yaml
+    playbooks           :
+	- "../../plays/database.yml" # Path to database play yaml
+	- "../../plays/web.yml"      # Path to web play yaml
     ##
     ## Optional  argument
     ansible_config      : "/path/to/ansible/ansible.cfg" # path to ansible config file
