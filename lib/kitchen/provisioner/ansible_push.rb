@@ -55,6 +55,7 @@ module Kitchen
       default_config :ssh_extra_args, nil
       default_config :ssh_common_args, nil
       default_config :module_path, nil
+      default_config :pass_transport_password, false
 
       # For tests disable if not needed
       default_config :chef_bootstrap_url, 'https://omnitruck.chef.io/install.sh'
@@ -119,6 +120,10 @@ module Kitchen
         temp_options << "--user=#{conf[:remote_user]}" if remote_user
         temp_options << "--become-method=#{conf[:become_method]}" if conf[:become_method]
         temp_options << '--ask-sudo-pass' if conf[:ask_sudo_pass]
+
+        # if running on windows in ec2 and password is obtained via get-password
+        temp_options << "-e ansible_password='#{instance.transport.instance_variable_get(:@connection_options)[:password]}'" if conf[:pass_transport_password]
+
         temp_options
       end
 
