@@ -68,6 +68,9 @@ provisioner         :
     generate_inv        : true
     use_instance_name   : false  # use short (platform) instead of instance name by default
     idempotency_test    : false
+
+    ## When running on EC2 with Windows and using get-password pass the password as ansible_password variable
+    pass_transport_password: false
 ```
 ## Idempotency test
 If you want to check your code is idempotent you can use the idempotency_test. Essentially, this will run Ansible twice and check nothing changed in the second run. If something changed it will list the tasks. Note: If your using Ansible callback in your config this might conflict.
@@ -123,6 +126,16 @@ provisioner:
     ansible_port          : 5586
     ansible_connection    : "winrm"
 ...
+```
+
+### Windows AWS EC2 support
+
+When running EC2 instance without password set via _get_password_ password can be passed from transport to Ansible command line as varaible:
+
+```yaml
+provisioner:
+    name:                       ansible_push
+    pass_transport_password:    true
 ```
 
 ## Pattern of usage
