@@ -35,6 +35,7 @@ jobs:
       run: bundle exec rubocop lib bin spec
     - name: Setup ansible
       run: |
+            set -x
             sudo apt-get install -y python3-setuptools
             pip3 install ansible==${{matrix.ansible-version}}
             pip3 show ansible
