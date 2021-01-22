@@ -25,7 +25,9 @@ jobs:
            pip3 install ansible==${{matrix.ansible-version}}
            ansible-playbook --version
            echo "P=$PATH"
+           echo ""
            find /home/runner/.local/lib/ -name ansible-playbook
+           echo ""
            pip3 show ansible
            
            exit 1
