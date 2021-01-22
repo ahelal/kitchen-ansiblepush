@@ -39,6 +39,9 @@ jobs:
             sudo apt-get install -y python3-setuptools
             pip3 install ansible==${{matrix.ansible-version}}
             pip3 show ansible
+            echo ""
+            /home/runner/.local/lib/python3.6/site-packages/ansible_test/_data/injector/ansible-playbook --version
+            
             export PATH=/home/runner/.local/lib/python3.6/site-packages/ansible_test/_data/injector:$PATH
             which ansible-playbook
             ansible-playbook --version
