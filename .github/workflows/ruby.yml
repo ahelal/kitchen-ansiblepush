@@ -24,7 +24,8 @@ jobs:
            sudo apt-get install -y python3-setuptools
            pip3 install ansible==${{matrix.ansible-version}}
            ansible-playbook --version
-           find / -name  ansible-playbook
+           pip3 show ansible
+           
            exit 1
     - name: Set up Ruby
     # To automatically get bug fixes and new Ruby versions for ruby/setup-ruby,
