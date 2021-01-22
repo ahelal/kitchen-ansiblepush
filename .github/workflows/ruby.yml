@@ -23,7 +23,7 @@ jobs:
             pip3 install ansible==${{matrix.ansible-version}}
             pip3 show ansible
             echo ""
-            sudo find . --name ansible-playbook
+            sudo find . -name ansible-playbook
             echo ""
             /home/runner/.local/lib/python3.6/site-packages/ansible_test/_data/injector/ansible-playbook --version
             
