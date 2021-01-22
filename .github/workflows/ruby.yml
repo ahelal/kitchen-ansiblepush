@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         ruby-version: ['2.6', '2.7', '3.0']
-        ansible-versions: ['2.8','2.9','2.10']
+        ansible-version: ['2.8', '2.9', '2.10']
 
     steps:
     - uses: actions/checkout@v2
@@ -37,7 +37,7 @@ jobs:
     #   run: ./test/ansible-setup.sh
     - name: integration tests
       run:  |
-        echo "${{ matrix.ruby-version }} ${{ansible-versions}}"        
+        echo "${{ matrix.ruby-version }} ${{matrix.ansible-version}}"        
         # bundle check
         # bundle exec kitchen test simpleNoChef
         # bundle exec kitchen test simpleWithChef
