@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-require 'kitchen-ansible/print_inventory_cli.rb'
+require 'kitchen-ansible/print_inventory_cli'
 
 print_inventory = PrintInventory.new
 print_inventory.run
