@@ -16,6 +16,21 @@ jobs:
         ansible-version: ['2.8.17', '2.9.17', '2.10.3']
 
     steps:
+    - name: Setup ansible
+      run: |
+            set -x
+            sudo apt-get install -y python3-setuptools
+            pip3 install ansible==${{matrix.ansible-version}}
+            pip3 show ansible
+            echo ""
+            sudo find . --name ansible-playbook
+            echo ""
+            /home/runner/.local/lib/python3.6/site-packages/ansible_test/_data/injector/ansible-playbook --version
+            
+            export PATH=/home/runner/.local/lib/python3.6/site-packages/ansible_test/_data/injector:$PATH
+            which ansible-playbook
+            ansible-playbook --version
+            exit 1
     - uses: actions/checkout@v2
     - name: Set up Ruby
     # To automatically get bug fixes and new Ruby versions for ruby/setup-ruby,
