@@ -25,9 +25,9 @@ jobs:
             echo ""
             sudo find /home/runner -name ansible-playbook
             echo ""
-            /home/runner/.local/lib/python3.6/site-packages/ansible_test/_data/injector/ansible-playbook --version
+            /home/runner/.local/bin/ansible-playbook
             
-            export PATH=/home/runner/.local/lib/python3.6/site-packages/ansible_test/_data/injector:$PATH
+            #export PATH=/home/runner/.local/lib/python3.6/site-packages/ansible_test/_data/injector:$PATH
             which ansible-playbook
             ansible-playbook --version
             exit 1
