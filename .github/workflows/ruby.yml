@@ -17,6 +17,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: which ansible
+      run: |
+           ansible-playbook --version
+           which ansible-playbook
+           exit 1
     - name: Set up Ruby
     # To automatically get bug fixes and new Ruby versions for ruby/setup-ruby,
     # change this to (see https://github.com/ruby/setup-ruby#versioning):
@@ -35,7 +40,7 @@ jobs:
       run: bundle exec rubocop lib bin spec
     - name: Setup ansible
       run: |
-            sudo apt-get install python3-setuptools
+            sudo apt-get install -y python3-setuptools
             pip3 install ansible==${{matrix.ansible-version}}
             ansible-playbook --version
     - name: integration tests
