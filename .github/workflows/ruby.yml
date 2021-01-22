@@ -28,3 +28,8 @@ jobs:
       run: gem build kitchen-ansiblepush.gemspec
     - name: Bundle install
       run: bundle install
+    - name: Run rspec
+      run: bundle exec rspec --require spec_helper --format d
+    - name: Run rubocop
+      run: bundle exec rubocop lib bin spec
+      
