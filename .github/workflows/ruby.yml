@@ -32,6 +32,8 @@ jobs:
       run: bundle exec rspec --require spec_helper --format d
     - name: Run rubocop
       run: bundle exec rubocop lib bin spec
+    - name: Setup ansible
+      run: ./test/ansible-setup.sh
     - name: integeration tests
       run:  |
         bundle check
