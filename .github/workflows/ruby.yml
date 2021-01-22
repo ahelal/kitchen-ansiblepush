@@ -34,6 +34,7 @@ jobs:
       run: bundle exec rubocop lib bin spec
     - name: integeration tests
       run:  |
+        bundle check
         bundle exec kitchen test simpleNoChef
         bundle exec kitchen test simpleWithChef
         bundle exec kitchen test notidempotent | tee /tmp/notidempotent
