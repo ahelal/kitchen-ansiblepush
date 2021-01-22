@@ -24,6 +24,8 @@ jobs:
            sudo apt-get install -y python3-setuptools
            pip3 install ansible==${{matrix.ansible-version}}
            ansible-playbook --version
+           echo "P=$PATH"
+           find /home/runner/.local/lib/ -name ansible-playbook
            pip3 show ansible
            
            exit 1
