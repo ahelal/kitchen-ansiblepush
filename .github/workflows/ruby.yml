@@ -17,20 +17,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: which ansible
-      run: |
-           ansible-playbook --version
-           which ansible-playbook
-           sudo apt-get install -y python3-setuptools
-           pip3 install ansible==${{matrix.ansible-version}}
-           ansible-playbook --version
-           echo "P=$PATH"
-           echo ""
-           find /home/runner/.local/lib/ -name ansible-playbook
-           echo ""
-           pip3 show ansible
-           
-           exit 1
     - name: Set up Ruby
     # To automatically get bug fixes and new Ruby versions for ruby/setup-ruby,
     # change this to (see https://github.com/ruby/setup-ruby#versioning):
@@ -51,6 +37,7 @@ jobs:
       run: |
             sudo apt-get install -y python3-setuptools
             pip3 install ansible==${{matrix.ansible-version}}
+            export PATH=/home/runner/.local/lib/python3.6/site-packages/ansible_test/_data/injector:$PATH
             ansible-playbook --version
     - name: integration tests
       run:  |
