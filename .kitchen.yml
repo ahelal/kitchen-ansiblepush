@@ -6,7 +6,7 @@ driver                      :
     use_sudo                : false
 
 driver_config               :
-     image                  : ubuntu:14.04
+     image                  : ubuntu:18.04
      platform               : ubuntu
 
 provisioner                 :
@@ -15,33 +15,9 @@ provisioner                 :
     idempotency_test        : true
 
 platforms:
-    - name                  : "ubuntuV19"
+    - name                  : "ubuntu"
       provisioner           :
-        ansible_playbook_bin: "`avm path v1.9`ansible-playbook"
-
-    - name                  : "ubuntuV20"
-      provisioner           :
-        ansible_playbook_bin: "`avm path v2.0`ansible-playbook"
-
-    - name                  : "ubuntuV21"
-      provisioner           :
-        ansible_playbook_bin: "`avm path v2.1`ansible-playbook"
-
-    - name                  : "ubuntuV22"
-      provisioner           :
-        ansible_playbook_bin: "`avm path v2.2`ansible-playbook"
-
-    - name                  : "ubuntuV23"
-      provisioner           :
-        ansible_playbook_bin: "`avm path v2.3`ansible-playbook"
-
-    - name                  : "ubuntuV24"
-      provisioner           :
-        ansible_playbook_bin: "`avm path v2.4`ansible-playbook"
-
-    - name                  : "ubuntuV25"
-      provisioner           :
-        ansible_playbook_bin: "`avm path v2.5`ansible-playbook"
+        ansible_playbook_bin: "ansible-playbook"
 
 suites                      :
   - name                    : simpleNoChef
