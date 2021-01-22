@@ -35,16 +35,18 @@ jobs:
       run: bundle exec rubocop lib bin spec
     - name: Setup ansible
       run: |
-            set -x
             sudo apt-get install -y python3-setuptools
             pip3 install ansible==${{matrix.ansible-version}}
             export PATH=/home/runner/.local/bin:$PATH
-            which ansible-playbook
-            ansible-playbook --version
+
     - name: integration tests
       run:  |
         echo "${{ matrix.ruby-version }} ${{matrix.ansible-version}}"        
         bundle check
+        which ansible-playbook
+        echo "**** ANSIBLE VERSION ****"
+        ansible-playbook --version
+        echo "****                 ****"
         bundle exec kitchen test simpleNoChef
         bundle exec kitchen test simpleWithChef
         bundle exec kitchen test notidempotent | tee /tmp/notidempotent
