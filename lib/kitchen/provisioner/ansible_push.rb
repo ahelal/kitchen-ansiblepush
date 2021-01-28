@@ -61,14 +61,16 @@ module Kitchen
       # For tests disable if not needed
       default_config :chef_bootstrap_url, 'https://omnitruck.chef.io/install.sh'
 
+      expand_path_for :playbook
+      expand_path_for :vault_password_file
+      expand_path_for :ansible_config
+
       # Validates the config and returns it.  Has side-effect of
       # possibly setting @extra_vars which doesn't seem to be used
       def conf
         return @validated_config if defined? @validated_config
 
-        raise UserError, 'No playbook defined. Please specify one in .kitchen.yml' unless config[:playbook]
-
-        raise UserError, "playbook '#{config[:playbook]}' could not be found. Please check path" unless File.exist?(config[:playbook])
+        raise UserError, "playbook '#{config[:playbook]}' could not be found. Please check path" unless File.exist?(playbook)
 
         if config[:vault_password_file] && !File.exist?(config[:vault_password_file])
           raise UserError, "Vault password '#{config[:vault_password_file]}' could not be found. Please check path"
@@ -97,6 +99,10 @@ module Kitchen
 
         info('Ansible push config validated')
         @validated_config = config
+      end
+
+      def playbook
+        @playbook ||= config[:playbook] || calculate_path("converge.yml")
       end
 
       def machine_name
@@ -170,7 +176,7 @@ module Kitchen
       def command
         return @command if defined? @command
         @command = [conf[:ansible_playbook_bin]]
-        @command = (@command << options << conf[:playbook]).flatten.join(' ')
+        @command = (@command << options << playbook).flatten.join(' ')
         debug("Ansible push command= #{@command}")
         @command
       end
@@ -306,6 +312,23 @@ module Kitchen
         else
           # safe default, in case input strays
           '-v'
+        end
+      end
+
+      def calculate_path(path, type = :file)
+        unless instance
+          fail 'Please ensure that an instance is provided before calling calculate_path'
+        end
+        base = config[:test_base_path]
+        candidates = []
+        candidates << File.join(base, instance.suite.name, 'ansible', path)
+        candidates << File.join(base, instance.suite.name, path)
+        candidates << File.join(base, path)
+        candidates << File.join(config[:kitchen_root], path)
+        candidates << File.join(Dir.pwd, path)
+
+        candidates.find do |c|
+          type == :file ? File.file?(c) : File.directory?(c)
         end
       end
     end

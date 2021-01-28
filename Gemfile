@@ -7,5 +7,6 @@ group :development do
   gem 'rubocop'
   gem 'simplecov'
   gem 'test-kitchen'
+  gem 'fakefs'
 end
 
