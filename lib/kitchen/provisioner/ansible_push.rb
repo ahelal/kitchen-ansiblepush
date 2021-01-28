@@ -71,7 +71,7 @@ module Kitchen
         return @validated_config if defined? @validated_config
 
         raise UserError, "playbook '#{config[:playbook]}' could not be found. Please check path" unless File.exist?(playbook)
-        info("Using #{playbook} play book to converge")
+        info("Using #{playbook} playbook to converge")
 
         if config[:vault_password_file] && !File.exist?(config[:vault_password_file])
           raise UserError, "Vault password '#{config[:vault_password_file]}' could not be found. Please check path"
