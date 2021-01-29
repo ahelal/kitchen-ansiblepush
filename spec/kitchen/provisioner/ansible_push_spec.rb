@@ -57,13 +57,6 @@ describe Kitchen::Provisioner::AnsiblePush do
     end
   end
 
-  it 'should find playbook file in <test_base_path>/<suite>/ansible' do
-    FakeFS.with_fresh do
-      create_playbook("/b/fries/ansible/converge.yml")
-      expect(provisioner.playbook).to match("fries/ansible/converge.yml")
-    end
-  end
-
   it 'should find playbook file in current dir' do
     FakeFS.with_fresh do
       create_playbook("/cwd/converge.yml")
@@ -71,11 +64,8 @@ describe Kitchen::Provisioner::AnsiblePush do
     end
   end
 
-  it 'should find playbook file in kitchen_root' do
-    FakeFS.with_fresh do
-      create_playbook("/r/converge.yml")
-      expect(provisioner.playbook).to match("r/converge.yml")
-    end
+  it 'Should fail with no playbook file' do
+    expect { provisioner.prepare_command }.to raise_error(Kitchen::UserError)
   end
 
   describe 'Basic config' do

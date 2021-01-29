@@ -70,7 +70,7 @@ module Kitchen
       def conf
         return @validated_config if defined? @validated_config
 
-        raise UserError, "playbook '#{config[:playbook]}' could not be found. Please check path" unless File.exist?(playbook)
+        raise UserError, "playbook '#{config[:playbook]}' could not be found. Please check path" unless playbook && File.exist?(playbook)
         info("Using #{playbook} playbook to converge")
 
         if config[:vault_password_file] && !File.exist?(config[:vault_password_file])
@@ -103,7 +103,7 @@ module Kitchen
       end
 
       def playbook
-        @playbook ||= config[:playbook] || calculate_path("converge.yml")
+        @playbook ||= config[:playbook] || calculate_path("converge.yml", :type => :file)
       end
 
       def machine_name
@@ -313,23 +313,6 @@ module Kitchen
         else
           # safe default, in case input strays
           '-v'
-        end
-      end
-
-      def calculate_path(path, type = :file)
-        unless instance
-          fail 'Please ensure that an instance is provided before calling calculate_path'
-        end
-        base = config[:test_base_path]
-        candidates = []
-        candidates << File.join(base, instance.suite.name, 'ansible', path)
-        candidates << File.join(base, instance.suite.name, path)
-        candidates << File.join(base, path)
-        candidates << File.join(config[:kitchen_root], path)
-        candidates << File.join(Dir.pwd, path)
-
-        candidates.find do |c|
-          type == :file ? File.file?(c) : File.directory?(c)
         end
       end
     end
