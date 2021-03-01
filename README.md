@@ -73,7 +73,7 @@ provisioner         :
     pass_transport_password: false
     ## (optional), if you want to set specific environment variables when running ansible
     environment_vars:
-	PROXMOX_URL: https://example.com:8006
+    	PROXMOX_URL: https://example.com:8006
 ```
 ## Idempotency test
 If you want to check your code is idempotent you can use the idempotency_test. Essentially, this will run Ansible twice and check nothing changed in the second run. If something changed it will list the tasks. Note: If your using Ansible callback in your config this might conflict.
