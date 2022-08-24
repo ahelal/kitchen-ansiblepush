@@ -30,6 +30,8 @@ def generate_instance_inventory(name, host, mygroup, instance_connection_option,
     temp_hash['ansible_winrm_server_cert_validation'] = 'ignore'
     temp_hash['ansible_winrm_transport'] = 'ssl'
     temp_hash['ansible_connection'] = 'winrm'
+    temp_hash['ansible_host'] = temp_hash['ansible_ssh_host']
+    temp_hash['ansible_user'] = temp_hash['ansible_ssh_user']
   end
   { name => temp_hash }
 end
