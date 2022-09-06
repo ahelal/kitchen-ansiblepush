@@ -22,9 +22,9 @@ describe 'Options' do
     let(:config) do
       {
         test_base_path: '/b',
-        kitchen_root: '/r',
+        kitchen_root: kitchen_root,
         log_level: :info,
-        playbook: 'spec/assets/ansible_test.yml',
+        playbook: 'ansible_test.yml',
         generate_inv: false,
         remote_user: 'test',
         sudo: true,
@@ -46,9 +46,9 @@ describe 'Options' do
     let(:config) do
       {
         test_base_path: '/b',
-        kitchen_root: '/r',
+        kitchen_root: kitchen_root,
         log_level: :info,
-        playbook: 'spec/assets/ansible_test.yml',
+        playbook: 'ansible_test.yml',
         generate_inv: false,
         remote_user: 'test2',
         become: true,
@@ -102,9 +102,9 @@ describe 'Options' do
     let(:config) do
       {
         test_base_path: '/b',
-        kitchen_root: '/r',
+        kitchen_root: kitchen_root,
         log_level: :info,
-        playbook: 'spec/assets/ansible_test.yml',
+        playbook: 'ansible_test.yml',
         generate_inv: false,
         remote_user: 'test2',
         become: true,

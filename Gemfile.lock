@@ -16,6 +16,7 @@ GEM
     docile (1.3.5)
     ed25519 (1.2.4)
     erubi (1.10.0)
+    fakefs (1.3.2)
     ffi (1.14.2)
     gssapi (1.3.1)
       ffi (>= 1.0.1)
@@ -152,6 +153,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  fakefs
   kitchen-ansiblepush!
   kitchen-docker
   pry

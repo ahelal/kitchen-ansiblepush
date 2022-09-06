@@ -12,3 +12,7 @@ RSpec.configure do |config|
   config.tty = true
   config.color = true
 end
+
+def kitchen_root
+  $spec_dir ||= File.expand_path(File.join(__dir__, 'assets'))
+end

@@ -61,14 +61,17 @@ module Kitchen
       # For tests disable if not needed
       default_config :chef_bootstrap_url, 'https://omnitruck.chef.io/install.sh'
 
+      expand_path_for :playbook
+      expand_path_for :vault_password_file
+      expand_path_for :ansible_config
+
       # Validates the config and returns it.  Has side-effect of
       # possibly setting @extra_vars which doesn't seem to be used
       def conf
         return @validated_config if defined? @validated_config
 
-        raise UserError, 'No playbook defined. Please specify one in .kitchen.yml' unless config[:playbook]
-
-        raise UserError, "playbook '#{config[:playbook]}' could not be found. Please check path" unless File.exist?(config[:playbook])
+        raise UserError, "playbook '#{config[:playbook]}' could not be found. Please check path" unless playbook && File.exist?(playbook)
+        info("Using #{playbook} playbook to converge")
 
         if config[:vault_password_file] && !File.exist?(config[:vault_password_file])
           raise UserError, "Vault password '#{config[:vault_password_file]}' could not be found. Please check path"
@@ -97,6 +100,10 @@ module Kitchen
 
         info('Ansible push config validated')
         @validated_config = config
+      end
+
+      def playbook
+        @playbook ||= config[:playbook] || calculate_path("converge.yml", :type => :file)
       end
 
       def machine_name
@@ -170,7 +177,7 @@ module Kitchen
       def command
         return @command if defined? @command
         @command = [conf[:ansible_playbook_bin]]
-        @command = (@command << options << conf[:playbook]).flatten.join(' ')
+        @command = (@command << options << playbook).flatten.join(' ')
         debug("Ansible push command= #{@command}")
         @command
       end
