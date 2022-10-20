@@ -24,7 +24,14 @@ describe Kitchen::Provisioner::AnsiblePush do
   end
 
   let(:instance) do
-    instance_double('Kitchen::Instance', name: 'coolbeans', logger: logger, suite: suite, platform: platform)
+    double = instance_double(
+      'Kitchen::Instance',
+      name: 'coolbeans',
+      logger: logger,
+      suite: suite,
+      platform: platform
+    )
+    double
   end
 
   # let(:machine_name) do
@@ -39,11 +46,11 @@ describe Kitchen::Provisioner::AnsiblePush do
     expect(provisioner.diagnose_plugin[:api_version]).to eq(2)
   end
 
-  it 'Should fail with no playbook file' do
+  it "fails with no 'playbook' and 'playbooks' specified" do
     expect { provisioner.prepare_command }.to raise_error(Kitchen::UserError)
   end
 
-  describe 'Baisc config' do
+  describe 'Basic config' do
     let(:config) do
       {
         test_base_path: '/b',

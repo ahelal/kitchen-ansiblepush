@@ -2,13 +2,21 @@ require 'securerandom'
 
 def idempotency_test
   info('*************** idempotency test ***************')
+  conf[:playbooks].each do |playbook|
+    _idempotency_test_single(playbook)
+  end
+end
+
+def _idempotency_test_single(playbook)
   file_path = "/tmp/kitchen_ansible_callback/#{SecureRandom.uuid}.changes"
   exec_ansible_command(
     command_env.merge(
       'ANSIBLE_CALLBACK_PLUGINS'   => "#{File.dirname(__FILE__)}/../../callback/",
       'ANSIBLE_CALLBACK_WHITELIST' => 'changes',
       'PLUGIN_CHANGES_FILE'        => file_path
-    ), command, 'ansible-playbook'
+    ),
+    command(playbook),
+    'ansible-playbook'
   )
   debug("idempotency file #{file_path}")
   # Check ansible callback if changes has occured in the second run

@@ -39,6 +39,7 @@ module Kitchen
       default_config :host_key_checking, false
       default_config :mygroup, nil
       default_config :playbook, nil
+      default_config :playbooks, []
       default_config :generate_inv, true
       default_config :generate_inv_path, '`which kitchen-ansible-inventory`'
       default_config :raw_arguments, nil
@@ -66,9 +67,24 @@ module Kitchen
       def conf
         return @validated_config if defined? @validated_config
 
-        raise UserError, 'No playbook defined. Please specify one in .kitchen.yml' unless config[:playbook]
+        unless config[:playbooks].is_a?(Array)
+          raise UserError,
+                "ansible playbooks is not an `Array` type. Given type: #{config[:playbooks].class}"
+        end
 
-        raise UserError, "playbook '#{config[:playbook]}' could not be found. Please check path" unless File.exist?(config[:playbook])
+        playbooks_to_run = config[:playbooks].clone
+
+        if config[:playbooks] && config[:playbook]
+          playbooks_to_run << config[:playbook]
+        end
+
+        if !playbooks_to_run || playbooks_to_run.empty?
+          raise UserError, 'No `playbook` or `playbooks` defined. Please specify one in .kitchen.yml'
+        end
+
+        playbooks_to_run.each do |playbook|
+          raise UserError, "playbook '#{config[:playbook]}' could not be found. Please check path" unless File.exist?(playbook)
+        end
 
         if config[:vault_password_file] && !File.exist?(config[:vault_password_file])
           raise UserError, "Vault password '#{config[:vault_password_file]}' could not be found. Please check path"
@@ -167,10 +183,9 @@ module Kitchen
         @options = options
       end
 
-      def command
-        return @command if defined? @command
+      def command(playbook)
         @command = [conf[:ansible_playbook_bin]]
-        @command = (@command << options << conf[:playbook]).flatten.join(' ')
+        @command = (@command << options << playbook).flatten.join(' ')
         debug("Ansible push command= #{@command}")
         @command
       end
@@ -209,7 +224,7 @@ module Kitchen
       def install_command
         info('*************** AnsiblePush install_command ***************')
         # Test if ansible-playbook is installed and give a meaningful error message
-        version_check = command + ' --version'
+        version_check = command(conf[:playbooks].first) + ' --version'
         _, stdout, stderr, wait_thr = Open3.popen3(command_env, version_check)
         exit_status = wait_thr.value
         raise UserError, "#{version_check} returned a non zero '#{exit_status}' stdout : '#{stdout.read}', stderr: '#{stderr.read}'" unless exit_status.success?
@@ -232,8 +247,11 @@ module Kitchen
 
       def run_command
         info('*************** AnsiblePush run ***************')
-        exec_ansible_command(command_env, command, 'ansible-playbook')
-        idempotency_test if conf[:idempotency_test]
+        conf[:playbooks].each do |playbook|
+          exec_ansible_command(command_env, command(playbook), 'ansible-playbook')
+          idempotency_test if conf[:idempotency_test]
+        end
+
         info('*************** AnsiblePush end run *******************')
         debug("[#{name}] Converge completed (#{conf[:sleep]}s).")
         true_command # Place holder so a string is returned. This will execute true on remote host
