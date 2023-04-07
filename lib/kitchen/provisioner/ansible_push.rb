@@ -148,12 +148,6 @@ module Kitchen
         options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
         options << "--inventory-file=#{conf[:generate_inv_path]}" if conf[:generate_inv]
         options << verbosity_argument.to_s if conf[:verbose]
-        # By default we limit by the current machine,
-        options << if conf[:limit]
-                     "--limit=#{as_list_argument(conf[:limit])}"
-                   else
-                     "--limit=#{machine_name}"
-                   end
         options << "--timeout=#{conf[:timeout]}" if conf[:timeout]
         options << "--force-handlers=#{conf[:force_handlers]}" if conf[:force_handlers]
         options << "--step=#{conf[:step]}" if conf[:step]
