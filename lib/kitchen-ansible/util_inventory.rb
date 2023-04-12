@@ -1,8 +1,11 @@
+require 'fileutils'
+
 TEMP_INV_DIR = '.kitchen/ansiblepush'.freeze
-TEMP_GROUP_FILE = "#{TEMP_INV_DIR}/ansiblepush_groups_inventory.yml".freeze
+TEMP_GROUP_FILE = "ansiblepush_groups_inventory.yml".freeze
 
 def write_var_to_yaml(yaml_file, hash_var)
-  Dir.mkdir TEMP_INV_DIR unless File.exist?(TEMP_INV_DIR)
+  base_path = File.dirname(yaml_file)
+  FileUtils.mkdir_p base_path unless File.exist?(base_path)
   File.open(yaml_file, 'w') do |file|
     file.write hash_var.to_yaml
   end

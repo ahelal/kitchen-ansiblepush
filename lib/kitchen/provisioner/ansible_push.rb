@@ -180,7 +180,8 @@ module Kitchen
         @command_env = {
           'PYTHONUNBUFFERED' => '1', # Ensure Ansible output isn't buffered
           'ANSIBLE_FORCE_COLOR' => 'true',
-          'ANSIBLE_HOST_KEY_CHECKING' => conf[:host_key_checking].to_s
+          'ANSIBLE_HOST_KEY_CHECKING' => conf[:host_key_checking].to_s,
+          'INSTANCE_NAME' => instance.name.gsub(/[<>]/, '')
         }
         @command_env['ANSIBLE_CONFIG'] = conf[:ansible_config] if conf[:ansible_config]
 
@@ -269,9 +270,9 @@ module Kitchen
         debug("hostname='#{hostname}'")
         # Generate hosts
         hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf)
-        write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
+        write_var_to_yaml("#{TEMP_INV_DIR}/#{instance.name.gsub(/[<>]/, '')}/ansiblepush_host_#{machine_name}.yml", hosts)
         # Generate groups (if defined)
-        write_var_to_yaml(TEMP_GROUP_FILE, conf[:groups]) if conf[:groups]
+        write_var_to_yaml("#{TEMP_INV_DIR}/#{instance.name.gsub(/[<>]/, '')}/#{TEMP_GROUP_FILE}", conf[:groups]) if conf[:groups]
       end
 
       def extra_vars_argument

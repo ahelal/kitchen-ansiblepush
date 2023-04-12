@@ -5,10 +5,11 @@ require 'kitchen-ansible/util_inventory.rb'
 
 class PrintInventory
   def initialize
+    temp_group_path = File.join(TEMP_INV_DIR, ENV["INSTANCE_NAME"], TEMP_GROUP_FILE)
     @inventory = {}
     @all = []
-    @groups = if File.exist?(TEMP_GROUP_FILE)
-                read_from_yaml TEMP_GROUP_FILE
+    @groups = if File.exist?(temp_group_path)
+                read_from_yaml temp_group_path
               else
                 {}
               end
@@ -20,7 +21,7 @@ class PrintInventory
   end
 
   def read_all_hosts
-    Dir.glob(TEMP_INV_DIR + '/ansiblepush_host_*.yml')
+    Dir.glob(File.join(TEMP_INV_DIR, ENV["INSTANCE_NAME"], 'ansiblepush_host_*.yml'))
   end
 
   def construct
