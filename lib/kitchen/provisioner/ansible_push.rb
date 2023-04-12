@@ -243,8 +243,8 @@ module Kitchen
 
       def exec_ansible_command(env, command, desc)
         debug("env=#{env} command=#{command}")
-        system(env, command.to_s)
-        exit_code = $CHILD_STATUS.exitstatus
+        stdout_and_stderr, exit_code = Open3.capture2e(env, command.to_s)
+        info(stdout_and_stderr)
         debug("ansible-playbook exit code = #{exit_code}")
         raise UserError, "#{desc} returned a non zero #{exit_code}. Please see the output above." if exit_code.to_i != 0
       end
