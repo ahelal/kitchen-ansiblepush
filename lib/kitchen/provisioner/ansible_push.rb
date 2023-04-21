@@ -238,10 +238,14 @@ module Kitchen
 
       def exec_ansible_command(env, command, desc)
         debug("env=#{env} command=#{command}")
-        stdout_and_stderr, exit_code = Open3.capture2e(env, command.to_s)
-        info(stdout_and_stderr)
-        debug("ansible-playbook exit code = #{exit_code}")
-        raise UserError, "#{desc} returned a non zero #{exit_code}. Please see the output above." if exit_code.to_i != 0
+        Open3.popen2e(env, command.to_s) do |stdin, stdout_and_stderr, status_thread|
+          stdout_and_stderr.each_line do |line|
+            info(line)
+          end
+          exit_code = status_thread.value
+          debug("ansible-playbook exit code = #{exit_code}")
+          raise UserError, "#{desc} returned a non zero #{exit_code}. Please see the output above." if exit_code.to_i != 0
+        end
       end
 
       def instance_connection_option
