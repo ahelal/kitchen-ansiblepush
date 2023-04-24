@@ -240,7 +240,7 @@ module Kitchen
         debug("env=#{env} command=#{command}")
         Open3.popen2e(env, command.to_s) do |stdin, stdout_and_stderr, status_thread|
           stdout_and_stderr.each_line do |line|
-            info(line)
+            info("[#{instance.name}]#{line}")
           end
           exit_code = status_thread.value
           debug("ansible-playbook exit code = #{exit_code}")
