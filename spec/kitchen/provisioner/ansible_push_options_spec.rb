@@ -38,7 +38,7 @@ describe 'Options' do
 
     it 'match min' do
       expect(provisioner.options).to eq(['--become', '--become-user=kitchen',
-                                         '--user=test', '--limit='])
+                                         '--user=test'])
     end
   end
 
@@ -140,7 +140,7 @@ describe 'Options' do
     it 'match all' do
       expect(provisioner.options).to eq(['--become', '--become-user=kitchen2', '--user=test2', '--become-method=sudo',
                                          '--private-key=/tmp/rsa_key', '--diff', '--ask-vault-pass', '--start-at-task=c1',
-                                         '--limit=', '--timeout=10', '--force-handlers=true', '--step=true',
+                                         '--timeout=10', '--force-handlers=true', '--step=true',
                                          '--module-path=/xxx', '--scp-extra-args=x', '--sftp-extra-args=y', '--ssh-common-args=z',
                                          '--ssh-extra-args=r', '-raw'])
     end
