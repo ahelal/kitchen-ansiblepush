@@ -148,12 +148,6 @@ module Kitchen
         options << "--start-at-task=#{conf[:start_at_task]}" if conf[:start_at_task]
         options << "--inventory-file=#{conf[:generate_inv_path]}" if conf[:generate_inv]
         options << verbosity_argument.to_s if conf[:verbose]
-        # By default we limit by the current machine,
-        options << if conf[:limit]
-                     "--limit=#{as_list_argument(conf[:limit])}"
-                   else
-                     "--limit=#{machine_name}"
-                   end
         options << "--timeout=#{conf[:timeout]}" if conf[:timeout]
         options << "--force-handlers=#{conf[:force_handlers]}" if conf[:force_handlers]
         options << "--step=#{conf[:step]}" if conf[:step]
@@ -180,7 +174,8 @@ module Kitchen
         @command_env = {
           'PYTHONUNBUFFERED' => '1', # Ensure Ansible output isn't buffered
           'ANSIBLE_FORCE_COLOR' => 'true',
-          'ANSIBLE_HOST_KEY_CHECKING' => conf[:host_key_checking].to_s
+          'ANSIBLE_HOST_KEY_CHECKING' => conf[:host_key_checking].to_s,
+          'INSTANCE_NAME' => instance.name.gsub(/[<>]/, '')
         }
         @command_env['ANSIBLE_CONFIG'] = conf[:ansible_config] if conf[:ansible_config]
 
@@ -243,10 +238,14 @@ module Kitchen
 
       def exec_ansible_command(env, command, desc)
         debug("env=#{env} command=#{command}")
-        system(env, command.to_s)
-        exit_code = $CHILD_STATUS.exitstatus
-        debug("ansible-playbook exit code = #{exit_code}")
-        raise UserError, "#{desc} returned a non zero #{exit_code}. Please see the output above." if exit_code.to_i != 0
+        Open3.popen2e(env, command.to_s) do |stdin, stdout_and_stderr, status_thread|
+          stdout_and_stderr.each_line do |line|
+            info("[#{instance.name}]#{line}")
+          end
+          exit_code = status_thread.value
+          debug("ansible-playbook exit code = #{exit_code}")
+          raise UserError, "#{desc} returned a non zero #{exit_code}. Please see the output above." if exit_code.to_i != 0
+        end
       end
 
       def instance_connection_option
@@ -269,9 +268,9 @@ module Kitchen
         debug("hostname='#{hostname}'")
         # Generate hosts
         hosts = generate_instance_inventory(machine_name, hostname, conf[:mygroup], instance_connection_option, conf)
-        write_var_to_yaml("#{TEMP_INV_DIR}/ansiblepush_host_#{machine_name}.yml", hosts)
+        write_var_to_yaml("#{TEMP_INV_DIR}/#{instance.name.gsub(/[<>]/, '')}/ansiblepush_host_#{machine_name}.yml", hosts)
         # Generate groups (if defined)
-        write_var_to_yaml(TEMP_GROUP_FILE, conf[:groups]) if conf[:groups]
+        write_var_to_yaml("#{TEMP_INV_DIR}/#{instance.name.gsub(/[<>]/, '')}/#{TEMP_GROUP_FILE}", conf[:groups]) if conf[:groups]
       end
 
       def extra_vars_argument

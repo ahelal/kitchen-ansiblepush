@@ -4,6 +4,7 @@ require 'kitchen-ansible/print_inventory_cli'
 
 describe PrintInventory do
   before :each do
+    ENV['INSTANCE_NAME'] = 'example_suite'
     @printinventory = PrintInventory.new
   end
 

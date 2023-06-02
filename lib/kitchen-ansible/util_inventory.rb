@@ -1,8 +1,11 @@
+require 'fileutils'
+
 TEMP_INV_DIR = '.kitchen/ansiblepush'.freeze
-TEMP_GROUP_FILE = "#{TEMP_INV_DIR}/ansiblepush_groups_inventory.yml".freeze
+TEMP_GROUP_FILE = "ansiblepush_groups_inventory.yml".freeze
 
 def write_var_to_yaml(yaml_file, hash_var)
-  Dir.mkdir TEMP_INV_DIR unless File.exist?(TEMP_INV_DIR)
+  base_path = File.dirname(yaml_file)
+  FileUtils.mkdir_p base_path unless File.exist?(base_path)
   File.open(yaml_file, 'w') do |file|
     file.write hash_var.to_yaml
   end
@@ -18,6 +21,7 @@ def generate_instance_inventory(name, host, mygroup, instance_connection_option,
   end
 
   temp_hash = {}
+  temp_hash['ansible_host'] = host
   temp_hash['ansible_ssh_host'] = host
   temp_hash['ansible_ssh_port'] = port if port
   temp_hash['ansible_ssh_private_key_file'] = keys[0] if keys
@@ -30,7 +34,6 @@ def generate_instance_inventory(name, host, mygroup, instance_connection_option,
     temp_hash['ansible_winrm_server_cert_validation'] = 'ignore'
     temp_hash['ansible_winrm_transport'] = 'ssl'
     temp_hash['ansible_connection'] = 'winrm'
-    temp_hash['ansible_host'] = temp_hash['ansible_ssh_host']
     temp_hash['ansible_user'] = temp_hash['ansible_ssh_user']
   end
   { name => temp_hash }
